@@ -48,7 +48,7 @@ export default function Header() {
         <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border border-[#E5E2DA] text-xs shadow-sm">
           <Building2 className="w-4 h-4 text-[#275232]" />
           <select
-            value={selectedProjectId}
+            value={selectedProjectId || ''}
             onChange={(e) => setSelectedProjectId(e.target.value)}
             className="bg-transparent text-xs font-medium text-[#1E231F] cursor-pointer focus:outline-none pr-1 max-w-[260px]"
           >
