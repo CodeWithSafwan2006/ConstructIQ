@@ -1,6 +1,9 @@
 // ConstructIQ Smart Risk Engine
 // Transparent, explainable rule-based risk evaluation system
 
+// ConstructIQ Smart Risk Engine
+// Transparent, explainable rule-based risk evaluation system
+
 export function calculateProjectRisk({ tasks = [], materials = [], project = {}, issues = [] }) {
   let delayScore = 0;
   let overdueScore = 0;
@@ -13,38 +16,43 @@ export function calculateProjectRisk({ tasks = [], materials = [], project = {},
 
   // 1. Progress below plan / delayed task (up to +30)
   const delayedTasks = tasks.filter(t => t.status === "Delayed");
-  if (delayedTasks.length > 0 || (project && project.progress < (project.plannedProgress || 70))) {
+  const isProgressBehind = project && project.progress < (project.plannedProgress || 70) && (project.plannedProgress > 0);
+  if (delayedTasks.length > 0 || isProgressBehind) {
     delayScore = 30;
+    const taskName = delayedTasks[0]?.name || "Activity";
+    const detailMsg = delayedTasks.length > 0 
+      ? `"${taskName}" task is delayed behind scheduled baseline` 
+      : `Overall progress ${project.progress || 0}% vs target ${project.plannedProgress || 70}%`;
     lineItems.push({
       rule: "Progress below plan / delayed task",
       score: 30,
       maxScore: 30,
-      detail: "Electrical Installation 45% complete vs 65% target plan",
+      detail: detailMsg,
       status: "TRIGGERED"
     });
-    reasons.push("Electrical installation is behind schedule (45% vs expected 65%)");
+    reasons.push(detailMsg);
   } else {
     lineItems.push({
       rule: "Progress below plan / delayed task",
       score: 0,
       maxScore: 30,
-      detail: "On schedule according to baseline plan",
+      detail: "Tasks progressing according to baseline plan",
       status: "OK"
     });
   }
 
   // 2. Overdue task (up to +10)
-  const overdueTasks = tasks.filter(t => t.status === "Delayed" || t.dueDate === "2026-09-20");
+  const overdueTasks = tasks.filter(t => t.status === "Delayed");
   if (overdueTasks.length > 0) {
     overdueScore = 10;
     lineItems.push({
       rule: "Overdue task",
       score: 10,
       maxScore: 10,
-      detail: "Electrical Installation due 20 Sep 2026",
+      detail: `"${overdueTasks[0].name}" milestone is overdue`,
       status: "TRIGGERED"
     });
-    reasons.push("Electrical Installation task overdue (target: 20 Sep 2026)");
+    reasons.push(`Overdue activity: ${overdueTasks[0].name}`);
   } else {
     lineItems.push({
       rule: "Overdue task",
@@ -59,15 +67,16 @@ export function calculateProjectRisk({ tasks = [], materials = [], project = {},
   const lowStockMaterials = materials.filter(m => m.available < m.minLevel);
   if (lowStockMaterials.length > 0) {
     materialScore = 20;
-    const matNames = lowStockMaterials.map(m => `${m.name} (${m.available} ${m.unit} vs min ${m.minLevel} ${m.unit})`).join(", ");
+    const mat = lowStockMaterials[0];
+    const matMsg = `${mat.name} inventory below threshold (${mat.available} ${mat.unit} vs min ${mat.minLevel} ${mat.unit})`;
     lineItems.push({
       rule: "Material below minimum stock",
       score: 20,
       maxScore: 20,
-      detail: `Steel inventory below safety threshold (12 tons vs min 15 tons)`,
+      detail: matMsg,
       status: "TRIGGERED"
     });
-    reasons.push("Steel inventory is below threshold (12 tons available vs 15 tons threshold)");
+    reasons.push(matMsg);
   } else {
     lineItems.push({
       rule: "Material below minimum stock",
@@ -79,31 +88,35 @@ export function calculateProjectRisk({ tasks = [], materials = [], project = {},
   }
 
   // 4. Forecast budget overrun (up to +15)
-  const budget = project.budget || 100000000;
-  const predicted = project.predictedFinalCost || 108000000;
+  const budget = project.budget || 0;
+  const spent = project.spent || 0;
+  const predicted = project.predictedFinalCost || budget;
   const overrun = predicted - budget;
-  if (overrun > 0 || project.spent / budget > 0.8) {
+  if ((overrun > 0 && budget > 0) || (budget > 0 && spent / budget > 0.85)) {
     budgetScore = 15;
+    const bugMsg = overrun > 0 
+      ? `Predicted cost ₹${(predicted/10000000).toFixed(1)} Cr exceeds budget ₹${(budget/10000000).toFixed(1)} Cr` 
+      : `High budget utilization (${((spent/budget)*100).toFixed(0)}%)`;
     lineItems.push({
       rule: "Forecast budget overrun",
       score: 15,
       maxScore: 15,
-      detail: "Predicted cost ₹10.8 Cr vs ₹10 Cr budget (Potential overrun ₹80 Lakh)",
+      detail: bugMsg,
       status: "TRIGGERED"
     });
-    reasons.push("Material spending above planned rate (+₹80 Lakh forecast overrun)");
+    reasons.push(bugMsg);
   } else {
     lineItems.push({
       rule: "Forecast budget overrun",
       score: 0,
       maxScore: 15,
-      detail: "Budget within target contingency",
+      detail: "Budget allocation within target thresholds",
       status: "OK"
     });
   }
 
   // 5. Low workforce availability (<80%) (up to +10)
-  const workforceAvailable = project.workforceAvailable || 92;
+  const workforceAvailable = project.workforceAvailable !== undefined ? project.workforceAvailable : 95;
   if (workforceAvailable < 80) {
     resourceScore = 10;
     lineItems.push({
@@ -119,12 +132,12 @@ export function calculateProjectRisk({ tasks = [], materials = [], project = {},
       rule: "Low workforce availability (<80%)",
       score: 0,
       maxScore: 10,
-      detail: `Workforce availability healthy at ${workforceAvailable}% (Threshold: 80%)`,
+      detail: `Workforce availability healthy at ${workforceAvailable}%`,
       status: "OK"
     });
   }
 
-  // Exact Sum
+  // Total Score Sum
   const totalScore = delayScore + overdueScore + materialScore + budgetScore + resourceScore;
 
   let riskLevel = "LOW";
@@ -146,21 +159,22 @@ export function calculateProjectRisk({ tasks = [], materials = [], project = {},
     level: riskLevel,
     statusText,
     badgeColor,
-    lineItems, // For line-item breakdown component
+    lineItems,
     breakdown: {
       schedule: delayScore + overdueScore >= 30 ? "HIGH RISK" : delayScore > 0 ? "MEDIUM RISK" : "LOW RISK",
       budget: budgetScore >= 15 ? "HIGH RISK" : "LOW RISK",
       materials: materialScore >= 20 ? "HIGH RISK" : "LOW RISK",
-      resources: resourceScore >= 10 ? "MEDIUM RISK" : "LOW RISK (92% available)"
+      resources: resourceScore >= 10 ? "MEDIUM RISK" : `LOW RISK (${workforceAvailable}% available)`
     },
     projectHealth: {
-      schedule: { level: "MEDIUM", detail: "2% behind week's plan" },
-      budget: { level: "HIGH", detail: "83% utilized, forecast overrun" },
-      materials: { level: "HIGH", detail: "Steel below minimum threshold" },
-      resources: { level: "LOW", detail: "92% workforce available" },
-      overall: "HIGH"
+      schedule: { level: delayScore > 0 ? "MEDIUM" : "LOW", detail: delayScore > 0 ? "Behind plan" : "On schedule" },
+      budget: { level: budgetScore > 0 ? "HIGH" : "LOW", detail: budgetScore > 0 ? `${((spent/(budget||1))*100).toFixed(0)}% utilized` : "Within budget" },
+      materials: { level: materialScore > 0 ? "HIGH" : "LOW", detail: materialScore > 0 ? "Low stock detected" : "Stock healthy" },
+      resources: { level: resourceScore > 0 ? "MEDIUM" : "LOW", detail: `${workforceAvailable}% workforce available` },
+      overall: riskLevel
     },
-    whyHigh: "Electrical work delayed; Steel inventory low; Material spending above plan.",
+    whyHigh: reasons.length > 0 ? reasons.join("; ") : "All operational metrics within normal parameters.",
     reasons: reasons.length > 0 ? reasons : ["All operational metrics within normal safety parameters."]
   };
 }
+

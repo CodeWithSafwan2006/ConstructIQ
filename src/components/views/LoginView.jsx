@@ -32,12 +32,33 @@ export default function LoginView() {
   const [signupEmail, setSignupEmail] = useState('');
   const [signupPassword, setSignupPassword] = useState('');
   const [signupConfirm, setSignupConfirm] = useState('');
-  const [signupRole, setSignupRole] = useState('pm');
+  const [signupRole, setSignupRole] = useState('admin');
   const [showSignupPwd, setShowSignupPwd] = useState(false);
   const [showConfirmPwd, setShowConfirmPwd] = useState(false);
   const [signupError, setSignupError] = useState('');
   const [signupLoading, setSignupLoading] = useState(false);
   const [roleOpen, setRoleOpen] = useState(false);
+
+  // Sub-role accounts state for System Admin signup
+  const [pmEmail, setPmEmail] = useState('');
+  const [pmPassword, setPmPassword] = useState('pm123');
+  const [seEmail, setSeEmail] = useState('');
+  const [sePassword, setSePassword] = useState('eng123');
+  const [emEmail, setEmEmail] = useState('');
+  const [emPassword, setEmPassword] = useState('exec123');
+
+  // Auto-generate sub-role emails when Admin email changes
+  const handleAdminEmailChange = (val) => {
+    setSignupEmail(val);
+    if (val && val.includes('@')) {
+      const parts = val.split('@');
+      const prefix = parts[0];
+      const domain = parts[1];
+      setPmEmail(`${prefix}pm@${domain}`);
+      setSeEmail(`${prefix}se@${domain}`);
+      setEmEmail(`${prefix}em@${domain}`);
+    }
+  };
 
   const selectedRoleObj = ROLES.find(r => r.id === signupRole) || ROLES[0];
 
@@ -67,6 +88,11 @@ export default function LoginView() {
       email: signupEmail,
       password: signupPassword,
       role: signupRole,
+      subRoles: signupRole === 'admin' ? {
+        pm: { email: pmEmail || `${signupEmail.split('@')[0]}pm@${signupEmail.split('@')[1] || 'constructiq.io'}`, password: pmPassword },
+        site_eng: { email: seEmail || `${signupEmail.split('@')[0]}se@${signupEmail.split('@')[1] || 'constructiq.io'}`, password: sePassword },
+        management: { email: emEmail || `${signupEmail.split('@')[0]}em@${signupEmail.split('@')[1] || 'constructiq.io'}`, password: emPassword }
+      } : null
     });
     setSignupLoading(false);
     if (!result.success) {
@@ -220,7 +246,7 @@ export default function LoginView() {
 
               <div>
                 <label className="block text-[11px] font-bold text-[#1E231F] uppercase tracking-wider mb-1.5">
-                  Work Email
+                  Work Email (System Admin ID)
                 </label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6E726E]" />
@@ -228,8 +254,8 @@ export default function LoginView() {
                     type="email"
                     required
                     value={signupEmail}
-                    onChange={e => setSignupEmail(e.target.value)}
-                    placeholder="you@company.com"
+                    onChange={e => handleAdminEmailChange(e.target.value)}
+                    placeholder="user@construct.iq"
                     className="w-full pl-10 pr-4 py-3 rounded-xl border border-[#E5E2DA] bg-[#F7F5F0] text-sm font-semibold text-[#1E231F] placeholder:text-[#B0ADA5] focus:outline-none focus:border-[#275232] focus:ring-2 focus:ring-[#275232]/10 transition-all"
                   />
                 </div>
@@ -238,7 +264,7 @@ export default function LoginView() {
               {/* Role Dropdown */}
               <div>
                 <label className="block text-[11px] font-bold text-[#1E231F] uppercase tracking-wider mb-1.5">
-                  Your Role
+                  Account Role
                 </label>
                 <div className="relative">
                   <button
@@ -271,6 +297,86 @@ export default function LoginView() {
                   )}
                 </div>
               </div>
+
+              {/* SYSTEM ADMIN SUB-ROLES CREDENTIAL SETUP CARD */}
+              {signupRole === 'admin' && (
+                <div className="p-4 rounded-xl bg-[#E5EFE2]/50 border border-[#C6DCBF] space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-black text-[#275232] uppercase tracking-wider">
+                      Assign Team Role Credentials
+                    </h4>
+                    <span className="text-[9px] font-bold text-[#275232] bg-[#E5EFE2] px-2 py-0.5 rounded border border-[#C6DCBF]">
+                      Auto-generated
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-[#6E726E]">Set the Login IDs and Passwords for your Project Manager, Site Engineer, and Executive Management:</p>
+
+                  <div className="space-y-2.5 text-xs">
+                    {/* PM Account */}
+                    <div className="bg-white p-2.5 rounded-lg border border-[#E5E2DA] space-y-1.5">
+                      <span className="font-bold text-[#1E231F] text-[11px]">1. Project Manager Account (PM)</span>
+                      <div className="grid grid-cols-2 gap-2">
+                        <input
+                          type="text"
+                          value={pmEmail}
+                          onChange={e => setPmEmail(e.target.value)}
+                          placeholder="userpm@construct.iq"
+                          className="w-full bg-[#F7F5F0] border border-[#E5E2DA] rounded-lg px-2 py-1 text-[11px] font-medium text-[#1E231F]"
+                        />
+                        <input
+                          type="text"
+                          value={pmPassword}
+                          onChange={e => setPmPassword(e.target.value)}
+                          placeholder="PM Password"
+                          className="w-full bg-[#F7F5F0] border border-[#E5E2DA] rounded-lg px-2 py-1 text-[11px] font-mono text-[#1E231F]"
+                        />
+                      </div>
+                    </div>
+
+                    {/* SE Account */}
+                    <div className="bg-white p-2.5 rounded-lg border border-[#E5E2DA] space-y-1.5">
+                      <span className="font-bold text-[#1E231F] text-[11px]">2. Site Engineer Account (SE)</span>
+                      <div className="grid grid-cols-2 gap-2">
+                        <input
+                          type="text"
+                          value={seEmail}
+                          onChange={e => setSeEmail(e.target.value)}
+                          placeholder="userse@construct.iq"
+                          className="w-full bg-[#F7F5F0] border border-[#E5E2DA] rounded-lg px-2 py-1 text-[11px] font-medium text-[#1E231F]"
+                        />
+                        <input
+                          type="text"
+                          value={sePassword}
+                          onChange={e => setSePassword(e.target.value)}
+                          placeholder="SE Password"
+                          className="w-full bg-[#F7F5F0] border border-[#E5E2DA] rounded-lg px-2 py-1 text-[11px] font-mono text-[#1E231F]"
+                        />
+                      </div>
+                    </div>
+
+                    {/* EM Account */}
+                    <div className="bg-white p-2.5 rounded-lg border border-[#E5E2DA] space-y-1.5">
+                      <span className="font-bold text-[#1E231F] text-[11px]">3. Executive Management (EM)</span>
+                      <div className="grid grid-cols-2 gap-2">
+                        <input
+                          type="text"
+                          value={emEmail}
+                          onChange={e => setEmEmail(e.target.value)}
+                          placeholder="userem@construct.iq"
+                          className="w-full bg-[#F7F5F0] border border-[#E5E2DA] rounded-lg px-2 py-1 text-[11px] font-medium text-[#1E231F]"
+                        />
+                        <input
+                          type="text"
+                          value={emPassword}
+                          onChange={e => setEmPassword(e.target.value)}
+                          placeholder="EM Password"
+                          className="w-full bg-[#F7F5F0] border border-[#E5E2DA] rounded-lg px-2 py-1 text-[11px] font-mono text-[#1E231F]"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="grid grid-cols-2 gap-3">
                 <div>

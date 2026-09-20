@@ -1,14 +1,22 @@
 import React, { useState } from 'react';
-import { Layers, Search, Plus, AlertTriangle, CheckCircle2, Clock, Calendar, User, Trash2 } from 'lucide-react';
+import { Layers, Search, Plus, AlertTriangle, CheckCircle2, Clock, Calendar, User, Trash2, Users } from 'lucide-react';
 import RiskBadge from '../common/RiskBadge';
 import ProgressBar from '../common/ProgressBar';
 import { useApp } from '../../context/AppContext';
+import { useAuth } from '../../context/AuthContext';
 
 export default function TasksView({ tasks, onAddTask, onUpdateTaskStatus }) {
-  const { deleteTask, projects, selectedProjectId } = useApp();
+  const { deleteTask, projects, selectedProjectId, selectedProject, setActiveTab, showToast } = useApp();
+  const { currentUser } = useAuth();
+
+  const isExecutive = currentUser?.role === 'management';
+  const canCreateTask = ['admin', 'pm'].includes(currentUser?.role || 'pm');
+  const canUpdateStatus = ['admin', 'pm', 'site_eng'].includes(currentUser?.role || 'pm');
+  const canDeleteTask = ['admin', 'pm'].includes(currentUser?.role || 'pm');
   const [filterStatus, setFilterStatus] = useState('ALL');
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showAllProjects, setShowAllProjects] = useState(false);
 
   // Form State
   const [name, setName] = useState('');
@@ -19,9 +27,13 @@ export default function TasksView({ tasks, onAddTask, onUpdateTaskStatus }) {
   const [priority, setPriority] = useState('Medium');
   const [progress, setProgress] = useState(0);
 
-  const delayedTasks = tasks.filter(t => t.status === 'Delayed');
+  const activeProjectTasks = tasks.filter(t => 
+    showAllProjects || t.projectId === selectedProjectId || (selectedProject && t.projectName === selectedProject.name)
+  );
 
-  const filteredTasks = tasks.filter(t => {
+  const delayedTasks = activeProjectTasks.filter(t => t.status === 'Delayed');
+
+  const filteredTasks = activeProjectTasks.filter(t => {
     const matchesStatus = filterStatus === 'ALL' || t.status === filterStatus;
     const matchesSearch = t.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           (t.assignedTo && t.assignedTo.toLowerCase().includes(searchTerm.toLowerCase())) ||
@@ -33,12 +45,12 @@ export default function TasksView({ tasks, onAddTask, onUpdateTaskStatus }) {
     e.preventDefault();
     if (!name.trim()) return;
 
-    const matchedProject = projects.find(p => p.id === projId) || projects[0];
+    const matchedProject = projects.find(p => p.id === projId) || selectedProject || projects[0];
 
     onAddTask({
       name,
       projectId: projId,
-      projectName: matchedProject?.name || "Ahmedabad Smart Residency",
+      projectName: matchedProject?.name || "Construction Project",
       assignedTo: assignee || "Site Contractor",
       progress: Number(progress) || 0,
       dueDate: dueDate || "2026-11-30",
@@ -62,13 +74,41 @@ export default function TasksView({ tasks, onAddTask, onUpdateTaskStatus }) {
           <p className="text-xs text-[#6E726E]">Track task completion, milestone timelines, and contractor accountability across all site operations.</p>
         </div>
 
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-[#275232] hover:bg-[#1E3F27] text-white font-bold text-xs rounded-xl shadow-xs transition-colors shrink-0"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Add New Task</span>
-        </button>
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
+          <button
+            onClick={() => setActiveTab('team')}
+            className="px-3 py-2 bg-white hover:bg-[#F7F5F0] text-[#275232] border border-[#C6DCBF] font-semibold text-xs rounded-xl shadow-xs transition-colors flex items-center gap-1.5"
+          >
+            <Users className="w-3.5 h-3.5" />
+            <span>Team Roster</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('issues')}
+            className="px-3 py-2 bg-white hover:bg-[#F7F5F0] text-[#991B1B] border border-[#FCA5A5] font-semibold text-xs rounded-xl shadow-xs transition-colors flex items-center gap-1.5"
+          >
+            <AlertTriangle className="w-3.5 h-3.5" />
+            <span>Log Issue</span>
+          </button>
+
+          <button
+            onClick={() => {
+              if (!canCreateTask) {
+                showToast("Only Project Managers and System Admins can create new tasks.", 'warning');
+                return;
+              }
+              setShowAddModal(true);
+            }}
+            disabled={!canCreateTask}
+            className={`flex items-center gap-2 px-4 py-2 text-white font-bold text-xs rounded-xl shadow-xs transition-colors ${
+              canCreateTask ? 'bg-[#275232] hover:bg-[#1E3F27]' : 'bg-gray-400 cursor-not-allowed opacity-75'
+            }`}
+            title={canCreateTask ? "Add Task" : "Restricted: Requires Project Manager or System Admin role"}
+          >
+            <Plus className="w-4 h-4" />
+            <span>{canCreateTask ? 'Add New Task' : 'Add Task (Restricted)'}</span>
+          </button>
+        </div>
       </div>
 
       {/* Delay Tracking Alert Banner */}

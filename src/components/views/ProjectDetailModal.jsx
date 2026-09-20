@@ -11,6 +11,10 @@ export default function ProjectDetailModal({ project, onClose, tasks, materials,
   const projectTasks = tasks.filter(t => t.projectId === project.id || t.projectName === project.name);
   const projectIssues = issues.filter(i => i.projectName === project.name);
 
+  const isDummyProject = ['p001', 'p002', 'p003', 'p004', 'p005'].includes(project.id);
+  const projectMaterials = materials.filter(m => m.projectId === project.id || (!m.projectId && isDummyProject));
+  const projectExpenses = expenses.filter(e => e.projectId === project.id || (!e.projectId && isDummyProject));
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-fade-in">
       <div className="w-full max-w-4xl bg-white border border-[#E5E2DA] rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] text-[#1E231F]">
@@ -39,7 +43,7 @@ export default function ProjectDetailModal({ project, onClose, tasks, materials,
           {[
             { id: 'overview', label: 'Overview', icon: Building2 },
             { id: 'tasks', label: `Tasks (${projectTasks.length})`, icon: Layers },
-            { id: 'materials', label: 'Materials', icon: Boxes },
+            { id: 'materials', label: `Materials (${projectMaterials.length})`, icon: Boxes },
             { id: 'expenses', label: 'Expenses', icon: TrendingUp },
             { id: 'issues', label: `Issues (${projectIssues.length})`, icon: AlertOctagon }
           ].map((tab) => {
@@ -94,18 +98,22 @@ export default function ProjectDetailModal({ project, onClose, tasks, materials,
                 <div className="p-4 rounded-xl bg-[#F7F5F0] border border-[#E5E2DA] space-y-2 text-xs">
                   <h5 className="font-bold text-[#1E231F] border-b border-[#E5E2DA] pb-2">Operational Details</h5>
                   <div className="flex justify-between"><span className="text-[#6E726E]">Project Manager:</span> <span className="text-[#1E231F] font-medium">{project.manager}</span></div>
-                  <div className="flex justify-between"><span className="text-[#6E726E]">Site Engineer:</span> <span className="text-[#1E231F] font-medium">{project.siteEngineer}</span></div>
-                  <div className="flex justify-between"><span className="text-[#6E726E]">Start Date:</span> <span className="text-[#1E231F] font-medium">{project.startDate}</span></div>
-                  <div className="flex justify-between"><span className="text-[#6E726E]">Target Date:</span> <span className="text-[#1E231F] font-medium">{project.targetDate}</span></div>
+                  <div className="flex justify-between"><span className="text-[#6E726E]">Site Engineer:</span> <span className="text-[#1E231F] font-medium">{project.siteEngineer || 'Not Assigned'}</span></div>
+                  <div className="flex justify-between"><span className="text-[#6E726E]">Start Date:</span> <span className="text-[#1E231F] font-medium">{project.startDate || '2026-01-01'}</span></div>
+                  <div className="flex justify-between"><span className="text-[#6E726E]">Target Date:</span> <span className="text-[#1E231F] font-medium">{project.targetDate || '2027-12-31'}</span></div>
                 </div>
 
                 <div className="p-4 rounded-xl bg-[#F7F5F0] border border-[#E5E2DA] space-y-2 text-xs">
-                  <h5 className="font-bold text-[#1E231F] border-b border-[#E5E2DA] pb-2">Current Risk Drivers</h5>
-                  <ul className="space-y-1.5 text-[#4A524A]">
-                    <li className="flex items-center gap-2 text-red-700"><span className="w-1.5 h-1.5 rounded-full bg-red-700" /> Electrical installation activity behind schedule</li>
-                    <li className="flex items-center gap-2 text-amber-700"><span className="w-1.5 h-1.5 rounded-full bg-amber-700" /> Steel TMT bar inventory below minimum threshold</li>
-                    <li className="flex items-center gap-2 text-amber-700"><span className="w-1.5 h-1.5 rounded-full bg-amber-700" /> Material budget variance (+5% cost inflation)</li>
-                  </ul>
+                  <h5 className="font-bold text-[#1E231F] border-b border-[#E5E2DA] pb-2">Operational Risk Drivers</h5>
+                  {isDummyProject ? (
+                    <ul className="space-y-1.5 text-[#4A524A]">
+                      <li className="flex items-center gap-2 text-red-700"><span className="w-1.5 h-1.5 rounded-full bg-red-700" /> Electrical installation activity behind schedule</li>
+                      <li className="flex items-center gap-2 text-amber-700"><span className="w-1.5 h-1.5 rounded-full bg-amber-700" /> Steel TMT bar inventory below minimum threshold</li>
+                      <li className="flex items-center gap-2 text-amber-700"><span className="w-1.5 h-1.5 rounded-full bg-amber-700" /> Material budget variance (+5% cost inflation)</li>
+                    </ul>
+                  ) : (
+                    <p className="text-[#6E726E] text-xs">No active risk triggers flagged for this project.</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -113,7 +121,7 @@ export default function ProjectDetailModal({ project, onClose, tasks, materials,
 
           {activeTab === 'tasks' && (
             <div className="space-y-3">
-              {projectTasks.map(t => (
+              {projectTasks.length > 0 ? projectTasks.map(t => (
                 <div key={t.id} className="p-3.5 rounded-xl bg-[#F7F5F0] border border-[#E5E2DA] flex items-center justify-between">
                   <div>
                     <div className="flex items-center gap-2">
@@ -127,13 +135,15 @@ export default function ProjectDetailModal({ project, onClose, tasks, materials,
                     <ProgressBar progress={t.progress} status={t.status} showLabel={false} height="h-1.5" />
                   </div>
                 </div>
-              ))}
+              )) : (
+                <p className="text-xs text-[#6E726E] p-4 text-center">No tasks recorded yet for this project.</p>
+              )}
             </div>
           )}
 
           {activeTab === 'materials' && (
             <div className="space-y-3">
-              {materials.map(m => (
+              {projectMaterials.length > 0 ? projectMaterials.map(m => (
                 <div key={m.id} className="p-3.5 rounded-xl bg-[#F7F5F0] border border-[#E5E2DA] flex items-center justify-between">
                   <div>
                     <div className="flex items-center gap-2">
@@ -147,13 +157,15 @@ export default function ProjectDetailModal({ project, onClose, tasks, materials,
                     <div className="text-[10px] text-[#6E726E]">Min: {m.minLevel} {m.unit}</div>
                   </div>
                 </div>
-              ))}
+              )) : (
+                <p className="text-xs text-[#6E726E] p-4 text-center">No material inventory recorded yet for this project.</p>
+              )}
             </div>
           )}
 
           {activeTab === 'expenses' && (
             <div className="space-y-3">
-              {expenses.map((e, idx) => (
+              {projectExpenses.length > 0 ? projectExpenses.map((e, idx) => (
                 <div key={idx} className="p-3.5 rounded-xl bg-[#F7F5F0] border border-[#E5E2DA] flex items-center justify-between">
                   <div>
                     <span className="text-xs font-bold text-[#1E231F]">{e.category}</span>
@@ -166,7 +178,9 @@ export default function ProjectDetailModal({ project, onClose, tasks, materials,
                     </div>
                   </div>
                 </div>
-              ))}
+              )) : (
+                <p className="text-xs text-[#6E726E] p-4 text-center">No expense categories recorded yet for this project.</p>
+              )}
             </div>
           )}
 

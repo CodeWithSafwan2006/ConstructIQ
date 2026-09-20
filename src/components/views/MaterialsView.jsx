@@ -1,13 +1,21 @@
 import React, { useState } from 'react';
-import { Boxes, AlertTriangle, CheckCircle2, ShoppingCart, Plus, ArrowRight, Clock, ShieldCheck, Trash2 } from 'lucide-react';
+import { Boxes, AlertTriangle, CheckCircle2, ShoppingCart, Plus, ArrowRight, Clock, ShieldCheck, Trash2, TrendingUp } from 'lucide-react';
 import RiskBadge from '../common/RiskBadge';
 import { useApp } from '../../context/AppContext';
 
 export default function MaterialsView({ materials, materialRequests, onCreateRequest }) {
-  const { addMaterial, deleteMaterial, updateMaterial } = useApp();
+  const { addMaterial, deleteMaterial, updateMaterial, selectedProjectId, selectedProject, setActiveTab, addExpense } = useApp();
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [selectedMaterial, setSelectedMaterial] = useState(materials[1] || materials[0]);
+  const [recordExpense, setRecordExpense] = useState(true);
+
+  // Filter materials for current selected project (fallback to p001 defaults if p001 selected)
+  const isDummyProject = ['p001', 'p002', 'p003', 'p004', 'p005'].includes(selectedProjectId);
+  const activeProjectMaterials = materials.filter(m => 
+    m.projectId === selectedProjectId || (!m.projectId && isDummyProject)
+  );
+
+  const [selectedMaterial, setSelectedMaterial] = useState(activeProjectMaterials[0] || materials[0]);
   const [requestQty, setRequestQty] = useState(6);
 
   // New Material Form State
@@ -20,7 +28,7 @@ export default function MaterialsView({ materials, materialRequests, onCreateReq
   const [matSupplier, setMatSupplier] = useState('');
   const [matConsumption, setMatConsumption] = useState('');
 
-  const lowStockMaterials = materials.filter(m => m.available < m.minLevel);
+  const lowStockMaterials = activeProjectMaterials.filter(m => m.available < m.minLevel);
 
   const handleCreateNewMaterial = (e) => {
     e.preventDefault();
@@ -34,8 +42,21 @@ export default function MaterialsView({ materials, materialRequests, onCreateReq
       minLevel: Number(matMinLevel) || 10,
       unitPrice: Number(matUnitPrice) || 1000,
       supplier: matSupplier || "Local Vendor Ltd",
-      consumptionRate: matConsumption || "10 units/day"
+      consumptionRate: matConsumption || "10 units/day",
+      projectId: selectedProjectId
     });
+
+    if (recordExpense && addExpense) {
+      addExpense({
+        id: `tx_${Date.now()}`,
+        date: new Date().toISOString().split('T')[0],
+        description: `Material Stock: ${matName} (${matAvailable} ${matUnit})`,
+        category: 'Materials',
+        vendor: matSupplier || "Local Vendor",
+        amount: (Number(matAvailable) || 1) * (Number(matUnitPrice) || 1000),
+        status: "Approved"
+      });
+    }
 
     setMatName('');
     setMatAvailable('');
@@ -76,6 +97,14 @@ export default function MaterialsView({ materials, materialRequests, onCreateReq
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => setActiveTab('expenses')}
+            className="flex items-center gap-2 px-3.5 py-2 bg-white hover:bg-[#F7F5F0] text-[#275232] border border-[#C6DCBF] font-semibold text-xs rounded-xl shadow-xs transition-colors shrink-0"
+          >
+            <TrendingUp className="w-3.5 h-3.5" />
+            <span>Expense Ledger</span>
+          </button>
+
           <button
             onClick={() => setShowAddModal(true)}
             className="flex items-center gap-2 px-4 py-2 bg-white hover:bg-[#F7F5F0] text-[#275232] border border-[#C6DCBF] font-bold text-xs rounded-xl shadow-xs transition-colors shrink-0"
@@ -182,7 +211,7 @@ export default function MaterialsView({ materials, materialRequests, onCreateReq
       <div className="rounded-2xl bg-white border border-[#E5E2DA] overflow-hidden shadow-xs">
         <div className="p-4 border-b border-[#E5E2DA] bg-[#F7F5F0] flex items-center justify-between">
           <h3 className="text-sm font-bold text-[#1E231F]">Site Inventory Registry</h3>
-          <span className="text-xs text-[#6E726E]">{materials.length} Materials Tracked</span>
+          <span className="text-xs text-[#6E726E]">{activeProjectMaterials.length} Materials Tracked</span>
         </div>
 
         <div className="overflow-x-auto">
@@ -200,7 +229,7 @@ export default function MaterialsView({ materials, materialRequests, onCreateReq
               </tr>
             </thead>
             <tbody className="divide-y divide-[#E5E2DA] text-[#1E231F]">
-              {materials.map((m) => (
+              {activeProjectMaterials.map((m) => (
                 <tr key={m.id} className="hover:bg-[#F7F5F0]/60 transition-colors">
                   <td className="p-4 font-bold text-[#1E231F]">
                     {m.name}

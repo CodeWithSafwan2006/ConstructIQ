@@ -2,14 +2,19 @@ import React from 'react';
 import { BarChart3, TrendingUp, Sparkles, AlertTriangle, ShieldAlert, CheckCircle2, Layers, DollarSign, Boxes } from 'lucide-react';
 import { ResponsiveContainer, LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, CartesianGrid, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
 
+import { useApp } from '../../context/AppContext';
+
 export default function AnalyticsView({ projects, tasks, materials, expenses, riskAnalysis }) {
+  const { selectedProject, selectedProjectId } = useApp();
+  const currentProject = selectedProject || projects[0];
+
   const radarData = [
     { subject: 'Schedule', score: riskAnalysis?.score > 60 ? 45 : 85 },
-    { subject: 'Budget', score: 35 },
-    { subject: 'Materials', score: 40 },
+    { subject: 'Budget', score: currentProject.spent / (currentProject.budget || 1) > 0.8 ? 40 : 90 },
+    { subject: 'Materials', score: riskAnalysis?.projectHealth?.materials?.level === 'HIGH' ? 40 : 85 },
     { subject: 'Quality', score: 90 },
     { subject: 'Safety', score: 95 },
-    { subject: 'Workforce', score: 70 }
+    { subject: 'Workforce', score: 80 }
   ];
 
   return (
@@ -18,7 +23,7 @@ export default function AnalyticsView({ projects, tasks, materials, expenses, ri
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-extrabold text-[#1E231F] tracking-tight">Project Performance Analytics</h1>
-          <p className="text-xs text-[#6E726E] mt-1">Deep-dive predictive analytics, operational variance, and multi-project benchmarking.</p>
+          <p className="text-xs text-[#6E726E] mt-1">Deep-dive predictive analytics and telemetry for <strong className="text-[#1E231F]">{currentProject.name}</strong>.</p>
         </div>
       </div>
 
@@ -30,8 +35,12 @@ export default function AnalyticsView({ projects, tasks, materials, expenses, ri
           </div>
           <div>
             <span className="text-[10px] font-bold text-[#92400E] uppercase tracking-wider">Schedule Variance</span>
-            <h4 className="text-sm font-bold text-[#1E231F] mt-1">Actual progress is 2% behind plan</h4>
-            <p className="text-xs text-[#6E726E] mt-1">Ahmedabad Smart Residency is at 68% vs planned 70% target due to electrical installation bottleneck.</p>
+            <h4 className="text-sm font-bold text-[#1E231F] mt-1">
+              {currentProject.progress < (currentProject.plannedProgress || 70) ? `Actual progress is behind plan` : `On Schedule`}
+            </h4>
+            <p className="text-xs text-[#6E726E] mt-1">
+              {currentProject.name} is currently at {currentProject.progress || 0}% progress.
+            </p>
           </div>
         </div>
 
@@ -40,9 +49,13 @@ export default function AnalyticsView({ projects, tasks, materials, expenses, ri
             <DollarSign className="w-5 h-5" />
           </div>
           <div>
-            <span className="text-[10px] font-bold text-[#991B1B] uppercase tracking-wider">Cost Overrun Insight</span>
-            <h4 className="text-sm font-bold text-[#1E231F] mt-1">Material cost is 5% above planned</h4>
-            <p className="text-xs text-[#6E726E] mt-1">Actual material spending reached ₹4.2 Cr vs ₹4.0 Cr baseline due to steel TMT price adjustments.</p>
+            <span className="text-[10px] font-bold text-[#991B1B] uppercase tracking-wider">Cost Utilization</span>
+            <h4 className="text-sm font-bold text-[#1E231F] mt-1">
+              Spent ₹{((currentProject.spent || 0) / 10000000).toFixed(1)} Cr of ₹{((currentProject.budget || 0) / 10000000).toFixed(1)} Cr
+            </h4>
+            <p className="text-xs text-[#6E726E] mt-1">
+              Budget utilization rate at {currentProject.budget > 0 ? ((currentProject.spent / currentProject.budget) * 100).toFixed(0) : 0}%.
+            </p>
           </div>
         </div>
 
@@ -51,9 +64,13 @@ export default function AnalyticsView({ projects, tasks, materials, expenses, ri
             <Boxes className="w-5 h-5" />
           </div>
           <div>
-            <span className="text-[10px] font-bold text-[#275232] uppercase tracking-wider">Inventory Threshold</span>
-            <h4 className="text-sm font-bold text-[#1E231F] mt-1">Steel inventory requires procurement</h4>
-            <p className="text-xs text-[#6E726E] mt-1">Current steel reserve is 12 tons (below 15 ton safety buffer). 6 tons procurement recommended.</p>
+            <span className="text-[10px] font-bold text-[#275232] uppercase tracking-wider">Inventory & Risk</span>
+            <h4 className="text-sm font-bold text-[#1E231F] mt-1">
+              Overall Risk Score: {riskAnalysis.score}/100
+            </h4>
+            <p className="text-xs text-[#6E726E] mt-1">
+              {riskAnalysis.whyHigh}
+            </p>
           </div>
         </div>
       </div>

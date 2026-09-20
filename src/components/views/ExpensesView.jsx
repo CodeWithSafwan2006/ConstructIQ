@@ -1,20 +1,27 @@
 import React, { useState } from 'react';
-import { TrendingUp, DollarSign, AlertOctagon, Plus, ArrowUpRight, ArrowDownRight, CreditCard, ShieldAlert } from 'lucide-react';
+import { TrendingUp, DollarSign, AlertOctagon, Plus, ArrowUpRight, ArrowDownRight, CreditCard, ShieldAlert, Boxes } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, CartesianGrid } from 'recharts';
 import RiskBadge from '../common/RiskBadge';
+import { useApp } from '../../context/AppContext';
 
 export default function ExpensesView({ expenses, transactions, project, onAddExpense }) {
+  const { setActiveTab, addMaterial, selectedProjectId, selectedProject } = useApp();
   const [showAddModal, setShowAddModal] = useState(false);
   const [desc, setDesc] = useState('');
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState('Materials');
   const [vendor, setVendor] = useState('');
+  const [matQuantity, setMatQuantity] = useState('');
+  const [matUnit, setMatUnit] = useState('tons');
+  const [syncToMaterials, setSyncToMaterials] = useState(true);
 
-  const totalBudget = project ? project.budget : 100000000;
-  const totalSpent = project ? project.spent : 83000000;
-  const remaining = totalBudget - totalSpent;
-  const predictedCost = project ? project.predictedFinalCost : 108000000;
-  const potentialOverrun = predictedCost - totalBudget;
+  const activeProject = project || selectedProject || { name: 'Construction Project', budget: 100000000, spent: 83000000, predictedFinalCost: 108000000 };
+  const totalBudget = activeProject.budget || 100000000;
+  const totalSpent = activeProject.spent || 0;
+  const remaining = Math.max(0, totalBudget - totalSpent);
+  const predictedCost = activeProject.predictedFinalCost || totalBudget;
+  const potentialOverrun = Math.max(0, predictedCost - totalBudget);
+  const isOverBudget = potentialOverrun > 0 || (totalBudget > 0 && totalSpent / totalBudget > 0.85);
 
   const chartData = expenses.map(e => ({
     category: e.category,
@@ -28,7 +35,7 @@ export default function ExpensesView({ expenses, transactions, project, onAddExp
 
     onAddExpense({
       id: `tx_${Date.now()}`,
-      date: "2026-09-20",
+      date: new Date().toISOString().split('T')[0],
       description: desc,
       category: category,
       vendor: vendor || "Site Ledger Vendor",
@@ -36,9 +43,25 @@ export default function ExpensesView({ expenses, transactions, project, onAddExp
       status: "Approved"
     });
 
+    // If category is Materials and sync option checked, add or update material inventory
+    if (category === 'Materials' && syncToMaterials && desc) {
+      addMaterial({
+        name: desc,
+        category: 'Civil',
+        available: Number(matQuantity) || 10,
+        unit: matUnit || 'tons',
+        minLevel: 5,
+        unitPrice: Math.round(Number(amount) / (Number(matQuantity) || 1)),
+        supplier: vendor || 'Local Vendor',
+        consumptionRate: '5 units/day',
+        projectId: selectedProjectId
+      });
+    }
+
     setDesc('');
     setAmount('');
     setVendor('');
+    setMatQuantity('');
     setShowAddModal(false);
   };
 
@@ -48,43 +71,61 @@ export default function ExpensesView({ expenses, transactions, project, onAddExp
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-extrabold text-[#1E231F] tracking-tight">Budget & Expense Intelligence</h1>
-          <p className="text-xs text-[#6E726E]">Financial tracking, category allocation, cost variance, and overrun forecasting.</p>
+          <p className="text-xs text-[#6E726E]">Financial tracking & material expenditure for <strong className="text-[#1E231F]">{activeProject.name}</strong>.</p>
         </div>
 
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-[#275232] hover:bg-[#1E3F27] text-white font-bold text-xs rounded-xl shadow-xs transition-colors shrink-0"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Record Expense</span>
-        </button>
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={() => setActiveTab('materials')}
+            className="flex items-center gap-2 px-3.5 py-2 bg-white hover:bg-[#F7F5F0] text-[#275232] border border-[#C6DCBF] font-semibold text-xs rounded-xl shadow-xs transition-colors"
+          >
+            <Boxes className="w-3.5 h-3.5" />
+            <span>Materials Inventory</span>
+          </button>
+
+          <button
+            onClick={() => {
+              setCategory('Materials');
+              setShowAddModal(true);
+            }}
+            className="flex items-center gap-2 px-4 py-2 bg-[#275232] hover:bg-[#1E3F27] text-white font-bold text-xs rounded-xl shadow-xs transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Record Expense</span>
+          </button>
+        </div>
       </div>
 
-      {/* BUDGET RISK ALERT */}
-      <div className="p-6 rounded-2xl bg-[#FEE2E2] border border-[#FCA5A5] shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      {/* BUDGET RISK / HEALTH ALERT */}
+      <div className={`p-6 rounded-2xl border shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4 ${
+        isOverBudget ? 'bg-[#FEE2E2] border-[#FCA5A5]' : 'bg-[#E5EFE2] border-[#C6DCBF]'
+      }`}>
         <div className="flex items-start gap-4">
-          <div className="p-3 bg-red-600 text-white rounded-xl">
+          <div className={`p-3 text-white rounded-xl ${isOverBudget ? 'bg-red-600' : 'bg-[#275232]'}`}>
             <ShieldAlert className="w-6 h-6" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-lg font-extrabold text-[#991B1B]">HIGH BUDGET RISK</h3>
-              <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-red-200 text-[#991B1B]">
-                Forecast Overrun
+              <h3 className={`text-lg font-extrabold ${isOverBudget ? 'text-[#991B1B]' : 'text-[#275232]'}`}>
+                {isOverBudget ? 'HIGH BUDGET RISK' : 'BUDGET STATUS: ON TRACK'}
+              </h3>
+              <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${
+                isOverBudget ? 'bg-red-200 text-[#991B1B]' : 'bg-[#DCFCE7] text-[#166534]'
+              }`}>
+                {isOverBudget ? 'Forecast Overrun' : 'Within Allocation'}
               </span>
             </div>
-            <p className="text-xs text-[#7F1D1D] mt-1 max-w-2xl font-medium">
-              Original Budget: <span className="font-bold text-[#1E231F]">₹{(totalBudget / 10000000).toFixed(1)} Cr</span> | Current Spend: <span className="font-bold text-[#92400E]">₹{(totalSpent / 10000000).toFixed(1)} Cr</span> | Predicted Final Cost: <span className="font-bold text-[#991B1B]">₹{(predictedCost / 10000000).toFixed(1)} Cr</span>
+            <p className={`text-xs mt-1 max-w-2xl font-medium ${isOverBudget ? 'text-[#7F1D1D]' : 'text-[#275232]'}`}>
+              Approved Budget: <span className="font-bold text-[#1E231F]">₹{(totalBudget / 10000000).toFixed(1)} Cr</span> | Current Spend: <span className="font-bold text-[#92400E]">₹{(totalSpent / 10000000).toFixed(1)} Cr</span> | Remaining: <span className="font-bold text-[#275232]">₹{(remaining / 10000000).toFixed(1)} Cr</span>
             </p>
-            <div className="text-xs font-bold text-[#991B1B] mt-1">
-              Potential Overrun: ₹{(potentialOverrun / 100000).toFixed(0)} Lakh (Material cost inflation & expedited shipping)
-            </div>
           </div>
         </div>
 
-        <div className="shrink-0 p-3 rounded-xl bg-white border border-[#FCA5A5] text-right text-xs">
+        <div className="shrink-0 p-3 rounded-xl bg-white border border-[#E5E2DA] text-right text-xs">
           <span className="text-[#6E726E] font-semibold block">Utilization Rate</span>
-          <span className="text-2xl font-black text-[#92400E]">{((totalSpent / totalBudget) * 100).toFixed(1)}%</span>
+          <span className={`text-2xl font-black ${isOverBudget ? 'text-[#92400E]' : 'text-[#275232]'}`}>
+            {totalBudget > 0 ? ((totalSpent / totalBudget) * 100).toFixed(1) : 0}%
+          </span>
         </div>
       </div>
 
@@ -93,19 +134,21 @@ export default function ExpensesView({ expenses, transactions, project, onAddExp
         <div className="p-5 rounded-2xl bg-white border border-[#E5E2DA] shadow-xs">
           <span className="text-xs font-bold text-[#6E726E] uppercase tracking-wider">Total Approved Budget</span>
           <div className="text-3xl font-extrabold text-[#1E231F] mt-2">₹{(totalBudget / 10000000).toFixed(1)} Cr</div>
-          <span className="text-xs text-[#6E726E] mt-1 block">Ahmedabad Smart Residency</span>
+          <span className="text-xs text-[#6E726E] mt-1 block">{activeProject.name}</span>
         </div>
 
         <div className="p-5 rounded-2xl bg-white border border-[#FDE68A] shadow-xs">
           <span className="text-xs font-bold text-[#6E726E] uppercase tracking-wider">Total Spent to Date</span>
           <div className="text-3xl font-extrabold text-[#92400E] mt-2">₹{(totalSpent / 10000000).toFixed(2)} Cr</div>
-          <span className="text-xs text-[#92400E] mt-1 block font-semibold">83% of total budget</span>
+          <span className="text-xs text-[#92400E] mt-1 block font-semibold">
+            {totalBudget > 0 ? ((totalSpent / totalBudget) * 100).toFixed(0) : 0}% of total budget
+          </span>
         </div>
 
         <div className="p-5 rounded-2xl bg-white border border-[#BBF7D0] shadow-xs">
           <span className="text-xs font-bold text-[#6E726E] uppercase tracking-wider">Remaining Uncommitted</span>
           <div className="text-3xl font-extrabold text-[#166534] mt-2">₹{(remaining / 10000000).toFixed(2)} Cr</div>
-          <span className="text-xs text-[#166534] mt-1 block font-semibold">17% liquidity remaining</span>
+          <span className="text-xs text-[#166534] mt-1 block font-semibold">Liquidity available</span>
         </div>
       </div>
 

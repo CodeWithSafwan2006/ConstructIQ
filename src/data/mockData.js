@@ -358,6 +358,159 @@ export const initialMaterials = [
     status: "OK",
     consumptionRate: "50 cu.m/day",
     projectId: "p002"
+  },
+  {
+    id: "m009",
+    name: "Glass Curtain Wall Panes",
+    category: "Finishing",
+    available: 18,
+    unit: "units",
+    minLevel: 30,
+    unitPrice: 12000,
+    supplier: "GlassTech Corp",
+    status: "LOW STOCK",
+    recommendedProcurement: 15,
+    consumptionRate: "4 units/day",
+    projectId: "p002"
+  },
+  {
+    id: "m010",
+    name: "HVAC Galvanized Iron Ducts",
+    category: "MEP",
+    available: 600,
+    unit: "meters",
+    minLevel: 200,
+    unitPrice: 1800,
+    supplier: "Voltas Climate",
+    status: "OK",
+    consumptionRate: "30 meters/day",
+    projectId: "p002"
+  },
+
+  // Project 3: Surat Riverfront Mall (p003)
+  {
+    id: "m011",
+    name: "Diaphragm Wall Casing Pipes",
+    category: "Civil",
+    available: 120,
+    unit: "units",
+    minLevel: 50,
+    unitPrice: 8500,
+    supplier: "Gujarat GeoTech",
+    status: "OK",
+    consumptionRate: "10 units/day",
+    projectId: "p003"
+  },
+  {
+    id: "m012",
+    name: "Escalator Motor Assemblies",
+    category: "MEP",
+    available: 2,
+    unit: "units",
+    minLevel: 4,
+    unitPrice: 350000,
+    supplier: "Otis Elevators",
+    status: "LOW STOCK",
+    recommendedProcurement: 3,
+    consumptionRate: "1 unit/week",
+    projectId: "p003"
+  },
+  {
+    id: "m013",
+    name: "Skylight Tempered Glass",
+    category: "Structural",
+    available: 450,
+    unit: "sq.m",
+    minLevel: 200,
+    unitPrice: 4200,
+    supplier: "Architectural Glass Ltd",
+    status: "OK",
+    consumptionRate: "25 sq.m/day",
+    projectId: "p003"
+  },
+
+  // Project 4: Vadodara Green Villas (p004)
+  {
+    id: "m014",
+    name: "Italian Marble Slabs (20mm)",
+    category: "Finishing",
+    available: 1500,
+    unit: "sq.m",
+    minLevel: 800,
+    unitPrice: 3800,
+    supplier: "Royal Marble House",
+    status: "OK",
+    consumptionRate: "60 sq.m/day",
+    projectId: "p004"
+  },
+  {
+    id: "m015",
+    name: "Polymer Waterproofing Membrane",
+    category: "Civil",
+    available: 5,
+    unit: "rolls",
+    minLevel: 15,
+    unitPrice: 18000,
+    supplier: "WaterShield Pro",
+    status: "LOW STOCK",
+    recommendedProcurement: 10,
+    consumptionRate: "2 rolls/day",
+    projectId: "p004"
+  },
+  {
+    id: "m016",
+    name: "Smart Automation Controllers",
+    category: "Electrical",
+    available: 40,
+    unit: "units",
+    minLevel: 20,
+    unitPrice: 25000,
+    supplier: "Schneider Electric",
+    status: "OK",
+    consumptionRate: "3 units/day",
+    projectId: "p004"
+  },
+
+  // Project 5: Rajkot Commercial Hub (p005)
+  {
+    id: "m017",
+    name: "Pre-cast Concrete Wall Slabs",
+    category: "Structural",
+    available: 250,
+    unit: "units",
+    minLevel: 100,
+    unitPrice: 15000,
+    supplier: "Rajkot Precast Ltd",
+    status: "OK",
+    consumptionRate: "15 units/day",
+    projectId: "p005"
+  },
+  {
+    id: "m018",
+    name: "Heavy Steel Reinforcement (32mm)",
+    category: "Structural",
+    available: 8,
+    unit: "tons",
+    minLevel: 25,
+    unitPrice: 65000,
+    supplier: "Saurashtra Steel",
+    status: "LOW STOCK",
+    recommendedProcurement: 20,
+    consumptionRate: "4 tons/day",
+    projectId: "p005"
+  },
+  {
+    id: "m019",
+    name: "High-Density Sewerage Pipes",
+    category: "MEP",
+    available: 300,
+    unit: "meters",
+    minLevel: 150,
+    unitPrice: 2200,
+    supplier: "Urban Infra Pipes",
+    status: "OK",
+    consumptionRate: "20 meters/day",
+    projectId: "p005"
   }
 ];
 
@@ -559,81 +712,58 @@ export const plannedVsActualProgressData = [
 ];
 
 export const teamMembers = [
-  { id: "tm001", name: "Rohan Mehta", role: "Project Manager", project: "Ahmedabad Smart Residency", status: "Active", phone: "+91 98765 43210", email: "rohan.mehta@constructiq.io", tasksAssigned: 8, performance: "98%" },
-  { id: "tm002", name: "Vikram Patel", role: "Site Engineer", project: "Ahmedabad Smart Residency", status: "On Site", phone: "+91 98234 56789", email: "vikram.patel@constructiq.io", tasksAssigned: 5, performance: "94%" },
-  { id: "tm003", name: "Rajesh Sharma", role: "Procurement Manager", project: "Ahmedabad Smart Residency", status: "Active", phone: "+91 98111 22334", email: "rajesh.s@constructiq.io", tasksAssigned: 4, performance: "92%" },
-  { id: "tm004", name: "PowerGrid Electricals", role: "Electrical Subcontractor", project: "Ahmedabad Smart Residency", status: "Understaffed", phone: "+91 97222 33445", email: "contact@powergrid.in", tasksAssigned: 2, performance: "78%" },
-  { id: "tm005", name: "Apex Structures Ltd", role: "Structural RRC Contractor", project: "Ahmedabad Smart Residency", status: "On Site", phone: "+91 96333 44556", email: "info@apexstruct.com", tasksAssigned: 3, performance: "95%" },
-  { id: "tm006", name: "FlowTech Plumbing", role: "Plumbing Subcontractor", project: "Ahmedabad Smart Residency", status: "On Site", phone: "+91 95444 55667", email: "service@flowtech.co.in", tasksAssigned: 2, performance: "88%" }
+  // p001: Ahmedabad Smart Residency
+  { id: "tm001", name: "Rohan Mehta", role: "Project Manager", project: "Ahmedabad Smart Residency", projectId: "p001", status: "Active", phone: "+91 98765 43210", email: "rohan.mehta@constructiq.io", tasksAssigned: 8, performance: "98%" },
+  { id: "tm002", name: "Vikram Patel", role: "Site Engineer", project: "Ahmedabad Smart Residency", projectId: "p001", status: "On Site", phone: "+91 98234 56789", email: "vikram.patel@constructiq.io", tasksAssigned: 5, performance: "94%" },
+  { id: "tm003", name: "Rajesh Sharma", role: "Procurement Manager", project: "Ahmedabad Smart Residency", projectId: "p001", status: "Active", phone: "+91 98111 22334", email: "rajesh.s@constructiq.io", tasksAssigned: 4, performance: "92%" },
+  { id: "tm004", name: "PowerGrid Electricals", role: "Electrical Subcontractor", project: "Ahmedabad Smart Residency", projectId: "p001", status: "Understaffed", phone: "+91 97222 33445", email: "contact@powergrid.in", tasksAssigned: 2, performance: "78%" },
+  { id: "tm005", name: "Apex Structures Ltd", role: "Structural RRC Contractor", project: "Ahmedabad Smart Residency", projectId: "p001", status: "On Site", phone: "+91 96333 44556", email: "info@apexstruct.com", tasksAssigned: 3, performance: "95%" },
+  { id: "tm006", name: "FlowTech Plumbing", role: "Plumbing Subcontractor", project: "Ahmedabad Smart Residency", projectId: "p001", status: "On Site", phone: "+91 95444 55667", email: "service@flowtech.co.in", tasksAssigned: 2, performance: "88%" },
+
+  // p002: Gandhinagar Tech Park
+  { id: "tm007", name: "Ananya Roy", role: "Project Manager", project: "Gandhinagar Tech Park", projectId: "p002", status: "Active", phone: "+91 98765 11111", email: "ananya.r@constructiq.io", tasksAssigned: 8, performance: "96%" },
+  { id: "tm008", name: "Suresh Mehta", role: "Site Engineer Lead", project: "Gandhinagar Tech Park", projectId: "p002", status: "On Site", phone: "+91 98234 22222", email: "suresh.m@constructiq.io", tasksAssigned: 6, performance: "95%" },
+  { id: "tm009", name: "Zenith Earthworks", role: "Civil Subcontractor", project: "Gandhinagar Tech Park", projectId: "p002", status: "Active", phone: "+91 98111 33333", email: "info@zenithearth.com", tasksAssigned: 2, performance: "92%" },
+  { id: "tm010", name: "GlassTech Corp", role: "Glazing Subcontractor", project: "Gandhinagar Tech Park", projectId: "p002", status: "Understaffed", phone: "+91 97222 44444", email: "contact@glasstech.in", tasksAssigned: 1, performance: "80%" },
+
+  // p003: Surat Riverfront Mall
+  { id: "tm011", name: "Karan Johar", role: "Project Manager", project: "Surat Riverfront Mall", projectId: "p003", status: "Active", phone: "+91 98765 55555", email: "karan.j@constructiq.io", tasksAssigned: 8, performance: "90%" },
+  { id: "tm012", name: "Pooja Desai", role: "Site Engineer", project: "Surat Riverfront Mall", projectId: "p003", status: "On Site", phone: "+91 98234 66666", email: "pooja.d@constructiq.io", tasksAssigned: 5, performance: "91%" },
+  { id: "tm013", name: "Otis Elevators", role: "MEP Subcontractor", project: "Surat Riverfront Mall", projectId: "p003", status: "On Site", phone: "+91 98111 77777", email: "support@otis.in", tasksAssigned: 3, performance: "89%" },
+
+  // p004: Vadodara Green Villas
+  { id: "tm014", name: "Amit Shah", role: "Project Manager", project: "Vadodara Green Villas", projectId: "p004", status: "Active", phone: "+91 98765 88888", email: "amit.s@constructiq.io", tasksAssigned: 8, performance: "99%" },
+  { id: "tm015", name: "Manish Joshi", role: "Site Engineer", project: "Vadodara Green Villas", projectId: "p004", status: "On Site", phone: "+91 98234 99999", email: "manish.j@constructiq.io", tasksAssigned: 4, performance: "96%" },
+  { id: "tm016", name: "Royal Marble House", role: "Finishing Contractor", project: "Vadodara Green Villas", projectId: "p004", status: "Active", phone: "+91 98111 00000", email: "sales@royalmarble.com", tasksAssigned: 2, performance: "94%" },
+
+  // p005: Rajkot Commercial Hub
+  { id: "tm017", name: "Rajesh Varma", role: "Project Manager", project: "Rajkot Commercial Hub", projectId: "p005", status: "Active", phone: "+91 98765 12345", email: "rajesh.v@constructiq.io", tasksAssigned: 8, performance: "85%" },
+  { id: "tm018", name: "Hiren Patel", role: "Site Engineer", project: "Rajkot Commercial Hub", projectId: "p005", status: "On Site", phone: "+91 98234 23456", email: "hiren.p@constructiq.io", tasksAssigned: 6, performance: "83%" },
+  { id: "tm019", name: "Shree Excavations", role: "Demolition Subcontractor", project: "Rajkot Commercial Hub", projectId: "p005", status: "Active", phone: "+91 98111 34567", email: "shree@excavations.in", tasksAssigned: 3, performance: "88%" }
 ];
 
 export const initialDocuments = [
-  {
-    id: "doc001",
-    title: "Bill of Quantities (BOQ) - Block A & B",
-    category: "BOQ",
-    fileSize: "4.2 MB",
-    uploadedBy: "Chief Estimator",
-    date: "2026-01-20",
-    status: "Verified",
-    format: "PDF",
-    projectId: "p001"
-  },
-  {
-    id: "doc002",
-    title: "Structural Engineering Approval Certificate",
-    category: "Approvals",
-    fileSize: "1.8 MB",
-    uploadedBy: "Municipal Corp Gujarat",
-    date: "2026-02-14",
-    status: "Approved",
-    format: "PDF",
-    projectId: "p001"
-  },
-  {
-    id: "doc003",
-    title: "UltraTech Steel & Cement Test Certificate",
-    category: "Material Certificates",
-    fileSize: "850 KB",
-    uploadedBy: "Site Engineer (Vikram)",
-    date: "2026-09-05",
-    status: "Verified",
-    format: "PDF",
-    projectId: "p001"
-  },
-  {
-    id: "doc004",
-    title: "PowerGrid MEP Contract Agreement",
-    category: "Contracts",
-    fileSize: "3.1 MB",
-    uploadedBy: "Legal & Procurement",
-    date: "2026-03-01",
-    status: "Active",
-    format: "PDF",
-    projectId: "p001"
-  },
-  {
-    id: "doc005",
-    title: "Weekly Quality Audit & Site Safety Report",
-    category: "Site Reports",
-    fileSize: "2.4 MB",
-    uploadedBy: "Safety Auditor",
-    date: "2026-09-18",
-    status: "Verified",
-    format: "PDF",
-    projectId: "p001"
-  },
-  {
-    id: "doc006",
-    title: "Steel Shipment Invoice #INV-2026-88",
-    category: "Invoices",
-    fileSize: "1.2 MB",
-    uploadedBy: "Tata Tiscon Vendor",
-    date: "2026-09-18",
-    status: "Approved",
-    format: "PDF",
-    projectId: "p001"
-  }
+  // p001
+  { id: "doc001", title: "Bill of Quantities (BOQ) - Block A & B", category: "BOQ", fileSize: "4.2 MB", uploadedBy: "Chief Estimator", date: "2026-01-20", status: "Verified", format: "PDF", projectId: "p001" },
+  { id: "doc002", title: "Structural Engineering Approval Certificate", category: "Approvals", fileSize: "1.8 MB", uploadedBy: "Municipal Corp Gujarat", date: "2026-02-14", status: "Approved", format: "PDF", projectId: "p001" },
+  { id: "doc003", title: "UltraTech Steel & Cement Test Certificate", category: "Material Certificates", fileSize: "850 KB", uploadedBy: "Site Engineer (Vikram)", date: "2026-09-05", status: "Verified", format: "PDF", projectId: "p001" },
+  { id: "doc004", title: "PowerGrid MEP Contract Agreement", category: "Contracts", fileSize: "3.1 MB", uploadedBy: "Legal & Procurement", date: "2026-03-01", status: "Active", format: "PDF", projectId: "p001" },
+
+  // p002
+  { id: "doc005", title: "Gandhinagar Tech Park Master BOQ Sheet", category: "BOQ", fileSize: "5.1 MB", uploadedBy: "Ananya Roy (PM)", date: "2025-10-10", status: "Verified", format: "XLSX", projectId: "p002" },
+  { id: "doc006", title: "Curtain Wall Structural Safety Certificate", category: "Approvals", fileSize: "2.3 MB", uploadedBy: "GlassTech Corp", date: "2026-04-12", status: "Approved", format: "PDF", projectId: "p002" },
+
+  // p003
+  { id: "doc007", title: "Surat Mall Retail Architecture BOQ", category: "BOQ", fileSize: "6.4 MB", uploadedBy: "Karan Johar (PM)", date: "2025-08-20", status: "Verified", format: "PDF", projectId: "p003" },
+  { id: "doc008", title: "Otis Elevator Safety Inspection Audit", category: "Site Reports", fileSize: "1.5 MB", uploadedBy: "Otis Elevators Lead", date: "2026-06-18", status: "Approved", format: "PDF", projectId: "p003" },
+
+  // p004
+  { id: "doc009", title: "Vadodara Villas Landscape & Italian Marble BOQ", category: "BOQ", fileSize: "3.8 MB", uploadedBy: "Amit Shah (PM)", date: "2026-02-05", status: "Verified", format: "PDF", projectId: "p004" },
+  { id: "doc010", title: "Smart Home Schneider Electrical Approval", category: "Approvals", fileSize: "1.9 MB", uploadedBy: "Manish Joshi (Site Eng)", date: "2026-05-22", status: "Approved", format: "PDF", projectId: "p004" },
+
+  // p005
+  { id: "doc011", title: "Rajkot Hub Deep Foundation Piling Report", category: "Site Reports", fileSize: "2.9 MB", uploadedBy: "Rajesh Varma (PM)", date: "2026-03-15", status: "Verified", format: "PDF", projectId: "p005" },
+  { id: "doc012", title: "Saurashtra Steel Supply Invoice #INV-552", category: "Invoices", fileSize: "1.1 MB", uploadedBy: "Saurashtra Steel", date: "2026-07-01", status: "Approved", format: "PDF", projectId: "p005" }
 ];
 
 export const aiPredefinedResponses = [

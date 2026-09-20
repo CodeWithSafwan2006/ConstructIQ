@@ -127,7 +127,10 @@ export default function AddSiteView() {
 
   // Step 4 — Team
   const [manager, setManager]       = useState(currentUser?.name || '');
+  const [pmEmail, setPmEmail]       = useState('');
   const [siteEngineer, setSiteEngineer] = useState('');
+  const [seEmail, setSeEmail]       = useState('');
+  const [emEmail, setEmEmail]       = useState('');
   const [contractor, setContractor] = useState('');
   const [teamSize, setTeamSize]     = useState('');
 
@@ -180,6 +183,9 @@ export default function AddSiteView() {
       targetDate,
       manager,
       siteEngineer,
+      pmEmail,
+      seEmail,
+      emEmail,
       contractor,
       category: projectType,
       description,
@@ -309,7 +315,7 @@ export default function AddSiteView() {
                           : 'bg-[#F7F5F0] border-[#E5E2DA] text-[#6E726E] hover:bg-[#E5E2DA]/60'
                       }`}
                     >
-                      {r === 'LOW' ? '🟢 LOW' : r === 'MEDIUM' ? '🟡 MEDIUM' : '🔴 HIGH'}
+                      {r === 'LOW' ? 'LOW RISK' : r === 'MEDIUM' ? 'MEDIUM RISK' : 'HIGH RISK'}
                     </button>
                   ))}
                 </div>
@@ -394,9 +400,9 @@ export default function AddSiteView() {
               </div>
               {startDate && targetDate && (
                 <div className="p-4 rounded-xl bg-[#E5EFE2] border border-[#C6DCBF]">
-                  <p className="text-xs font-extrabold text-[#275232]">
-                    📅 Project Duration:{' '}
-                    {Math.ceil((new Date(targetDate) - new Date(startDate)) / (1000 * 60 * 60 * 24 * 30))} months
+                  <p className="text-xs font-extrabold text-[#275232] flex items-center gap-1.5">
+                    <Calendar className="w-4 h-4" />
+                    <span>Project Duration: {Math.ceil((new Date(targetDate) - new Date(startDate)) / (1000 * 60 * 60 * 24 * 30))} months</span>
                   </p>
                 </div>
               )}
@@ -406,13 +412,29 @@ export default function AddSiteView() {
           {/* ── STEP 4: Team & Contacts ── */}
           {step === 4 && (
             <>
-              <div>
-                <FieldLabel>Project Manager</FieldLabel>
-                <Input icon={HardHat} value={manager} onChange={e => setManager(e.target.value)} placeholder="Full name of Project Manager" />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <FieldLabel>Project Manager Name</FieldLabel>
+                  <Input icon={HardHat} value={manager} onChange={e => setManager(e.target.value)} placeholder="Full name of Project Manager" />
+                </div>
+                <div>
+                  <FieldLabel>Project Manager Email / ID</FieldLabel>
+                  <Input icon={Globe} type="email" value={pmEmail} onChange={e => setPmEmail(e.target.value)} placeholder="pm@constructiq.com" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <FieldLabel>Lead Site Engineer Name</FieldLabel>
+                  <Input icon={Layers} value={siteEngineer} onChange={e => setSiteEngineer(e.target.value)} placeholder="Full name of Site Engineer" />
+                </div>
+                <div>
+                  <FieldLabel>Site Engineer Email / ID</FieldLabel>
+                  <Input icon={Globe} type="email" value={seEmail} onChange={e => setSeEmail(e.target.value)} placeholder="se@constructiq.com" />
+                </div>
               </div>
               <div>
-                <FieldLabel>Lead Site Engineer</FieldLabel>
-                <Input icon={Layers} value={siteEngineer} onChange={e => setSiteEngineer(e.target.value)} placeholder="Full name of Site Engineer" />
+                <FieldLabel>Executive Mgmt Email / ID</FieldLabel>
+                <Input icon={Globe} type="email" value={emEmail} onChange={e => setEmEmail(e.target.value)} placeholder="em@constructiq.com" />
               </div>
               <div>
                 <FieldLabel>Main Contractor</FieldLabel>

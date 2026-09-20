@@ -19,7 +19,10 @@ export default function ProjectsView({ projects, tasks, materials, expenses, iss
   const [budget, setBudget] = useState('');
   const [targetDate, setTargetDate] = useState('2027-12-31');
   const [category, setCategory] = useState('Residential High-Rise');
-  const [manager, setManager] = useState('Rohan Mehta');
+  const [manager, setManager] = useState('Project Manager');
+  const [pmEmail, setPmEmail] = useState('');
+  const [seEmail, setSeEmail] = useState('');
+  const [emEmail, setEmEmail] = useState('');
 
   const filteredProjects = projects.filter(p => {
     const matchesRisk = filterRisk === 'ALL' || p.riskLevel === filterRisk;
@@ -50,13 +53,19 @@ export default function ProjectsView({ projects, tasks, materials, expenses, iss
       riskScore: 10,
       targetDate: targetDate || "2027-12-31",
       category,
-      manager
+      manager,
+      pmEmail,
+      seEmail,
+      emEmail
     });
 
     setName('');
     setClient('');
     setLocation('');
     setBudget('');
+    setPmEmail('');
+    setSeEmail('');
+    setEmEmail('');
     setShowAddModal(false);
   };
 
@@ -274,6 +283,42 @@ export default function ProjectsView({ projects, tasks, materials, expenses, iss
                     onChange={(e) => setManager(e.target.value)}
                     className="w-full bg-[#F7F5F0] border border-[#E5E2DA] rounded-xl px-3 py-2 text-xs text-[#1E231F] focus:outline-none focus:border-[#275232]"
                   />
+                </div>
+              </div>
+
+              <div className="p-3 bg-[#F7F5F0] rounded-xl border border-[#E5E2DA] space-y-3">
+                <p className="text-[11px] font-bold text-[#275232] uppercase tracking-wider">Assign Team Access (User Email / ID)</p>
+                <div>
+                  <label className="block text-[11px] font-semibold text-[#4A524A] mb-1">Project Manager Email / ID</label>
+                  <input 
+                    type="email" 
+                    placeholder="pm@constructiq.com"
+                    value={pmEmail}
+                    onChange={(e) => setPmEmail(e.target.value)}
+                    className="w-full bg-white border border-[#E5E2DA] rounded-xl px-3 py-2 text-xs text-[#1E231F] focus:outline-none focus:border-[#275232]"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-[#4A524A] mb-1">Site Engineer Email / ID</label>
+                    <input 
+                      type="email" 
+                      placeholder="se@constructiq.com"
+                      value={seEmail}
+                      onChange={(e) => setSeEmail(e.target.value)}
+                      className="w-full bg-white border border-[#E5E2DA] rounded-xl px-3 py-2 text-xs text-[#1E231F] focus:outline-none focus:border-[#275232]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-[#4A524A] mb-1">Executive Mgmt Email / ID</label>
+                    <input 
+                      type="email" 
+                      placeholder="em@constructiq.com"
+                      value={emEmail}
+                      onChange={(e) => setEmEmail(e.target.value)}
+                      className="w-full bg-white border border-[#E5E2DA] rounded-xl px-3 py-2 text-xs text-[#1E231F] focus:outline-none focus:border-[#275232]"
+                    />
+                  </div>
                 </div>
               </div>
 

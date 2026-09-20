@@ -1,31 +1,58 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Bot, Send, Sparkles, User, ArrowRight, Zap, CheckCircle2, ShoppingCart, FileText, AlertTriangle, Database } from 'lucide-react';
 import { aiPredefinedResponses } from '../../data/mockData';
 import { useApp } from '../../context/AppContext';
+import { useAuth } from '../../context/AuthContext';
 
 export default function AIAssistantView() {
-  const { setActiveTab, createMaterialRequest, projects, tasks, materials, expenses, issues, showToast } = useApp();
+  const { setActiveTab, createMaterialRequest, selectedProject, projects, tasks, materials, expenses, issues, showToast } = useApp();
+  const { currentUser } = useAuth();
+
+  const currentProjectName = selectedProject?.name || 'Active Project';
+  const userName = currentUser?.name || 'Operator';
 
   const [messages, setMessages] = useState([
     {
       id: "m0",
       sender: "ai",
-      text: `Hello Rohan! I am **ConstructIQ AI**, your real-time construction intelligence assistant.
+      text: `Hello ${userName}! I am **ConstructIQ AI**, your real-time construction intelligence assistant.
 
-I have synthesized live site data across all active projects, material stock levels, contractor schedules, and expense ledgers.
+I have synthesized live site data for **${currentProjectName}**, including material stock levels, contractor schedules, and expense ledgers.
 
 **How can I assist your operations today?**`,
       timestamp: "12:45 PM",
-      sources: ["Projects Data", "Tasks Engine", "Materials Ledger"]
+      sources: ["Project Telemetry", "Tasks Engine", "Materials Ledger"]
     }
   ]);
+
+  // Update initial welcoming greeting if project changes
+  useEffect(() => {
+    setMessages(prev => {
+      if (prev.length === 1 && prev[0].id === 'm0') {
+        return [
+          {
+            id: "m0",
+            sender: "ai",
+            text: `Hello ${userName}! I am **ConstructIQ AI**, your real-time construction intelligence assistant.
+
+I have synthesized live site data for **${currentProjectName}**, including material stock levels, contractor schedules, and expense ledgers.
+
+**How can I assist your operations today?**`,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            sources: ["Project Telemetry", "Tasks Engine", "Materials Ledger"]
+          }
+        ];
+      }
+      return prev;
+    });
+  }, [selectedProject?.id, userName]);
 
   const [inputQuestion, setInputQuestion] = useState("");
   const [isTyping, setIsTyping] = useState(false);
 
   const suggestedQuestions = [
     "Which projects are currently at risk?",
-    "Why is Ahmedabad Smart Residency delayed?",
+    `Why is ${currentProjectName} delayed?`,
     "What should I focus on today?",
     "Which material needs immediate procurement?",
     "Will this project exceed its budget?"
@@ -53,11 +80,16 @@ I have synthesized live site data across all active projects, material stock lev
       let hasReportAction = false;
 
       const qLower = q.toLowerCase();
+      const projName = selectedProject?.name || 'Current Project';
+      const riskScore = selectedProject?.riskScore ?? 25;
+      const riskLevel = selectedProject?.riskLevel || 'LOW';
+      const budget = selectedProject?.budget || 10;
+      const spent = selectedProject?.spent || 5;
 
       let matched = aiPredefinedResponses.find(r => r.question.toLowerCase() === qLower);
 
       if (matched) {
-        aiText = matched.answer;
+        aiText = matched.answer.replace(/Ahmedabad Smart Residency/g, projName);
         if (qLower.includes("material") || qLower.includes("steel") || qLower.includes("procurement")) {
           hasProcureAction = true;
           sources = ["Materials Inventory", "Procurement Engine", "Task Schedules"];
@@ -74,48 +106,44 @@ I have synthesized live site data across all active projects, material stock lev
           sources = ["Tasks Log", "Materials Ledger", "Issues Tracker"];
         }
       } else if (qLower.includes("risk") || qLower.includes("delayed") || qLower.includes("why")) {
-        aiText = `**Ahmedabad Smart Residency is currently at HIGH RISK (Score: 75/100).**
+        aiText = `**${projName} is currently evaluated at ${riskLevel} RISK (Score: ${riskScore}/100).**
 
 **Primary factors:**
-1. **Electrical installation delay** (45% vs expected 65%, due 20 Sep 2026).
-2. **Steel inventory shortage** (12 tons available vs 15 tons minimum threshold).
-3. **Material spending overrun** (+₹20 Lakh material cost variance, ₹10.8 Cr forecast).
+1. **Budget Status:** ₹${spent} Cr spent out of ₹${budget} Cr allocated budget.
+2. **Execution Progress:** ${selectedProject?.progress || 50}% milestone completion.
+3. **Site Monitoring:** Active inventory and labor tracking.
 
 **Recommended action:**
-Prioritize electrical work, assign additional workers, and initiate steel procurement immediately.`;
+Maintain tight oversight on upcoming milestone tasks and verify contractor deliverables for ${projName}.`;
         hasProcureAction = true;
         hasReportAction = true;
         sources = ["Smart Risk Engine", "Tasks Log", "Materials Inventory"];
       } else if (qLower.includes("steel") || qLower.includes("material") || qLower.includes("procurement")) {
-        aiText = `**Steel requires immediate attention.**
+        aiText = `**Material Stock Analysis for ${projName}:**
 
-• **Current Available:** 12 tons
-• **Minimum Threshold:** 15 tons
-• **Recommended Procurement:** 6 tons
-
-**Reason:**
-Upcoming structural slab casting on Floor 12 requires 6 tons of TMT Steel within 48 hours to avoid total project delay.`;
+• **Primary Materials:** Cement, TMT Steel, Aggregates, Electrical Conduits
+• **Stock Status:** Adequate for current phase
+• **Recommended Action:** Pre-order high-lead time items 2 weeks prior to structural casting.`;
         hasProcureAction = true;
         sources = ["Materials Inventory", "Procurement Engine"];
       } else if (qLower.includes("budget") || qLower.includes("cost") || qLower.includes("overrun")) {
-        aiText = `**The project currently has HIGH budget risk.**
+        aiText = `**Financial Overview for ${projName}:**
 
-• **Original Budget:** ₹10 Cr
-• **Current Spending:** ₹8.3 Cr
-• **Predicted Final Cost:** ₹10.8 Cr
-• **Potential Overrun:** ₹80 Lakh
+• **Original Budget:** ₹${budget} Cr
+• **Current Spending:** ₹${spent} Cr
+• **Remaining Balance:** ₹${(budget - spent).toFixed(1)} Cr
+• **Risk Evaluation:** ${riskLevel}
 
-**Primary Driver:** Material price inflation (+5% variance on Steel & Concrete).
-**Recommended Action:** Review material procurement and contractor costs.`;
+**Recommended Action:** Review material procurement and subcontractor billing schedules.`;
         hasReportAction = true;
         sources = ["Expenses Ledger", "Predicted Overrun Engine", "BOQ"];
       } else {
-        aiText = `ConstructIQ AI synthesized your query against live project telemetry.
+        aiText = `ConstructIQ AI synthesized your query against live site telemetry.
 
-Current Summary for **Ahmedabad Smart Residency**:
-• Progress: 68% (Lagging plan by 2%)
-• Health: AT RISK (75/100)
-• Critical Attention: Electrical Installation & Steel procurement.
+Current Summary for **${projName}**:
+• Progress: ${selectedProject?.progress || 50}%
+• Risk Status: ${riskLevel} (${riskScore}/100)
+• Budget Spent: ₹${spent} Cr / ₹${budget} Cr
 
 What specific operational details would you like to review next?`;
         sources = ["Tasks", "Materials", "Expenses"];
@@ -297,9 +325,9 @@ What specific operational details would you like to review next?`;
 
           <div className="p-5 rounded-2xl bg-white border border-[#E5E2DA] shadow-xs space-y-3 text-xs">
             <h4 className="font-bold text-[#1E231F] border-b border-[#E5E2DA] pb-2">Active AI Data Context</h4>
-            <div className="flex justify-between"><span className="text-[#6E726E]">Primary Site:</span> <span className="text-[#1E231F] font-medium">Ahmedabad Smart Residency</span></div>
-            <div className="flex justify-between"><span className="text-[#6E726E]">Engine Status:</span> <span className="text-[#275232] font-medium">Telemetry Connected</span></div>
-            <div className="flex justify-between"><span className="text-[#6E726E]">Risk Score:</span> <span className="text-[#991B1B] font-bold">75/100 (HIGH RISK)</span></div>
+            <div className="flex justify-between items-center gap-2"><span className="text-[#6E726E]">Primary Site:</span> <span className="text-[#1E231F] font-semibold truncate max-w-[170px]">{currentProjectName}</span></div>
+            <div className="flex justify-between items-center"><span className="text-[#6E726E]">Engine Status:</span> <span className="text-[#275232] font-semibold">Telemetry Connected</span></div>
+            <div className="flex justify-between items-center"><span className="text-[#6E726E]">Risk Score:</span> <span className={`font-bold ${selectedProject?.riskLevel === 'HIGH' ? 'text-[#991B1B]' : selectedProject?.riskLevel === 'MEDIUM' ? 'text-[#92400E]' : 'text-[#275232]'}`}>{selectedProject?.riskScore ?? 25}/100 ({selectedProject?.riskLevel || 'LOW'})</span></div>
           </div>
         </div>
       </div>

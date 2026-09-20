@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Settings, 
   UserCheck, 
@@ -18,9 +18,47 @@ import {
   BellRing
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
+import { useAuth } from '../../context/AuthContext';
 
 export default function SettingsView() {
   const { activeRole, setActiveRole, resetToBenchmarkData, showToast } = useApp();
+  const { currentUser, users, updateUserCredentials } = useAuth();
+
+  const isAdmin = currentUser?.role === 'admin';
+
+  // State for credential forms
+  const [editingRole, setEditingRole] = useState('pm');
+  const [roleName, setRoleName] = useState('');
+  const [roleEmail, setRoleEmail] = useState('');
+  const [rolePassword, setRolePassword] = useState('');
+
+  // Pre-fill form when selected role changes
+  useEffect(() => {
+    const matchedUser = (users || []).find(u => u.role === editingRole);
+    if (matchedUser) {
+      setRoleName(matchedUser.name || '');
+      setRoleEmail(matchedUser.email || '');
+      setRolePassword(matchedUser.password || '');
+    } else {
+      setRoleName(editingRole === 'pm' ? 'Rohan Mehta' : editingRole === 'site_eng' ? 'Vikram Patel' : 'Executive Leadership');
+      setRoleEmail(`${editingRole}@constructiq.io`);
+      setRolePassword(`${editingRole}123`);
+    }
+  }, [editingRole, users]);
+
+  const handleSaveCredentials = (e) => {
+    e.preventDefault();
+    if (!roleEmail || !rolePassword) return;
+
+    updateUserCredentials({
+      role: editingRole,
+      name: roleName,
+      email: roleEmail,
+      password: rolePassword
+    });
+
+    showToast(`Credentials updated for ${editingRole.toUpperCase()} (${roleEmail})`, 'success');
+  };
 
   const platformCapabilities = [
     {
@@ -92,6 +130,108 @@ export default function SettingsView() {
         </button>
       </div>
 
+      {/* SYSTEM ADMIN CREDENTIAL MANAGEMENT PANEL */}
+      {isAdmin && (
+        <div className="p-6 rounded-2xl bg-white border border-[#275232] shadow-xs space-y-4">
+          <div className="flex items-center justify-between border-b border-[#E5E2DA] pb-3">
+            <div>
+              <h3 className="text-base font-extrabold text-[#275232] flex items-center gap-2">
+                <ShieldCheck className="w-5 h-5 text-[#275232]" />
+                <span>System Admin — User Account & Password Setup</span>
+              </h3>
+              <p className="text-xs text-[#6E726E] mt-0.5">Configure login IDs (email) and passwords for Project Manager, Site Engineer, and Executive Management.</p>
+            </div>
+            <span className="px-3 py-1 rounded-full bg-[#E5EFE2] text-[#275232] font-extrabold text-xs border border-[#C6DCBF]">
+              Admin Control Panel
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+            {/* Role Select Tabs */}
+            <div className="md:col-span-4 space-y-2">
+              <label className="block text-xs font-bold text-[#8C8275] uppercase">Select Account Role to Configure:</label>
+              {[
+                { id: 'pm', label: 'Project Manager', desc: 'Full site operations & tasks' },
+                { id: 'site_eng', label: 'Site Engineer', desc: 'Field tasks & daily updates' },
+                { id: 'management', label: 'Executive Management', desc: 'Financials & portfolio analytics' },
+                { id: 'admin', label: 'System Admin', desc: 'System setup & user credentials' }
+              ].map(r => (
+                <button
+                  key={r.id}
+                  type="button"
+                  onClick={() => setEditingRole(r.id)}
+                  className={`w-full text-left p-3 rounded-xl border text-xs transition-all flex items-center justify-between ${
+                    editingRole === r.id
+                      ? 'border-[#275232] bg-[#E5EFE2] text-[#275232] font-extrabold shadow-xs'
+                      : 'border-[#E5E2DA] bg-[#F7F5F0] text-[#6E726E] hover:text-[#1E231F]'
+                  }`}
+                >
+                  <div>
+                    <div className="font-bold">{r.label}</div>
+                    <div className="text-[10px] font-normal opacity-80">{r.desc}</div>
+                  </div>
+                  {editingRole === r.id && <span className="w-2 h-2 rounded-full bg-[#275232]" />}
+                </button>
+              ))}
+            </div>
+
+            {/* Credential Editing Form */}
+            <div className="md:col-span-8 bg-[#F7F5F0] border border-[#E5E2DA] p-5 rounded-xl space-y-4">
+              <h4 className="text-xs font-extrabold text-[#1E231F] uppercase tracking-wider">
+                Credential Settings for: <span className="text-[#275232]">{editingRole.toUpperCase()}</span>
+              </h4>
+
+              <form onSubmit={handleSaveCredentials} className="space-y-4 text-xs">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block font-bold text-[#4A524A] mb-1">Assigned Person Name</label>
+                    <input 
+                      type="text"
+                      required
+                      value={roleName}
+                      onChange={(e) => setRoleName(e.target.value)}
+                      className="w-full bg-white border border-[#E5E2DA] rounded-xl px-3 py-2 text-xs text-[#1E231F] focus:outline-none focus:border-[#275232]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-[#4A524A] mb-1">User Login ID / Email</label>
+                    <input 
+                      type="email"
+                      required
+                      value={roleEmail}
+                      onChange={(e) => setRoleEmail(e.target.value)}
+                      className="w-full bg-white border border-[#E5E2DA] rounded-xl px-3 py-2 text-xs text-[#1E231F] focus:outline-none focus:border-[#275232]"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block font-bold text-[#4A524A] mb-1">Account Password</label>
+                  <input 
+                    type="text"
+                    required
+                    value={rolePassword}
+                    onChange={(e) => setRolePassword(e.target.value)}
+                    className="w-full bg-white border border-[#E5E2DA] rounded-xl px-3 py-2 text-xs font-mono text-[#1E231F] focus:outline-none focus:border-[#275232]"
+                  />
+                  <p className="text-[10px] text-[#6E726E] mt-1">Users logging in as {editingRole} must use this exact Login ID and Password.</p>
+                </div>
+
+                <div className="flex justify-end pt-2">
+                  <button
+                    type="submit"
+                    className="px-5 py-2.5 bg-[#275232] hover:bg-[#1E3F27] text-white font-extrabold rounded-xl text-xs shadow-xs transition-colors"
+                  >
+                    Save & Apply Role Credentials
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* SYSTEM CAPABILITIES STATUS */}
       <div className="p-6 rounded-2xl bg-white border border-[#C6DCBF] shadow-xs space-y-4">
         <div className="flex items-center justify-between border-b border-[#E5E2DA] pb-3">
@@ -123,44 +263,6 @@ export default function SettingsView() {
               </div>
             );
           })}
-        </div>
-      </div>
-
-      {/* Role Switcher Settings Card */}
-      <div className="p-6 rounded-2xl bg-white border border-[#E5E2DA] shadow-xs space-y-4">
-        <h3 className="text-base font-bold text-[#1E231F] flex items-center gap-2">
-          <UserCheck className="w-5 h-5 text-[#275232]" />
-          <span>Active User Access Role</span>
-        </h3>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[
-            { id: 'pm', name: 'Project Manager', desc: 'Rohan Mehta — Full site operations view' },
-            { id: 'admin', name: 'System Admin', desc: 'Full workspace system control' },
-            { id: 'site_eng', name: 'Site Engineer', desc: 'Vikram Patel — Field tasks & logs' },
-            { id: 'management', name: 'Executive Mgmt', desc: 'High level portfolio analytics' }
-          ].map(r => (
-            <button
-              key={r.id}
-              onClick={() => {
-                setActiveRole(r.id);
-                showToast(`Active role switched to ${r.name}`, 'info');
-              }}
-              className={`p-4 rounded-xl border text-left transition-all ${
-                activeRole === r.id 
-                  ? 'border-[#275232] bg-[#E5EFE2] text-[#275232] font-bold shadow-xs' 
-                  : 'border-[#E5E2DA] bg-[#F7F5F0] text-[#6E726E] hover:text-[#1E231F]'
-              }`}
-            >
-              <div className="text-xs font-bold">{r.name}</div>
-              <div className="text-[10px] opacity-80 mt-1">{r.desc}</div>
-              {activeRole === r.id && (
-                <span className="inline-block mt-2 px-2 py-0.5 rounded bg-[#275232] text-white font-bold text-[10px]">
-                  Active Selected
-                </span>
-              )}
-            </button>
-          ))}
         </div>
       </div>
 

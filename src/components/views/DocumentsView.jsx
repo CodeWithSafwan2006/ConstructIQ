@@ -3,7 +3,7 @@ import { FolderCheck, FileText, Upload, Search, Download, CheckCircle2, Plus, Tr
 import { useApp } from '../../context/AppContext';
 
 export default function DocumentsView() {
-  const { documents, addDocument, deleteDocument, selectedProject, showToast } = useApp();
+  const { documents, addDocument, deleteDocument, selectedProject, selectedProjectId, showToast } = useApp();
   const fileInputRef = useRef(null);
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -13,7 +13,13 @@ export default function DocumentsView() {
   const [selectedFileName, setSelectedFileName] = useState('');
   const [fileSizeStr, setFileSizeStr] = useState('1.5 MB');
 
-  const filteredDocs = documents.filter(d => 
+  const isDummyProject = ['p001', 'p002', 'p003', 'p004', 'p005'].includes(selectedProjectId);
+
+  const activeProjectDocs = documents.filter(d => 
+    d.projectId === selectedProjectId || (!d.projectId && isDummyProject)
+  );
+
+  const filteredDocs = activeProjectDocs.filter(d => 
     d.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
     d.category.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -36,10 +42,11 @@ export default function DocumentsView() {
       title: docTitle,
       category: docCategory,
       fileSize: fileSizeStr,
-      uploadedBy: "Project Manager (Rohan Mehta)",
+      uploadedBy: "Project Manager",
       date: new Date().toISOString().split('T')[0],
       status: "Uploaded & Verified",
-      format: selectedFileName.split('.').pop()?.toUpperCase() || "PDF"
+      format: selectedFileName.split('.').pop()?.toUpperCase() || "PDF",
+      projectId: selectedProjectId
     });
 
     setDocTitle('');

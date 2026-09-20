@@ -12,10 +12,13 @@ import {
   aiPredefinedResponses
 } from '../data/mockData';
 import { calculateProjectRisk } from '../utils/riskEngine';
+import { useAuth } from './AuthContext';
 
 const AppContext = createContext(null);
 
 export function AppProvider({ children }) {
+  const { currentUser } = useAuth();
+
   // Load initial state with localStorage persistence
   const [projects, setProjects] = useState(() => {
     const saved = localStorage.getItem('constructiq_projects');
@@ -62,14 +65,131 @@ export function AppProvider({ children }) {
     return saved ? JSON.parse(saved) : teamMembers;
   });
 
+  const activeWorkspaceOwnerEmail = useMemo(() => {
+    return (currentUser?.ownerEmail || currentUser?.email || 'admin@constructiq.io').toLowerCase();
+  }, [currentUser]);
+
+  // Filter projects by current authenticated workspace owner email or assigned roles
+  const userProjects = useMemo(() => {
+    return projects.filter(p => {
+      const pOwner = (p.ownerEmail || 'admin@constructiq.io').toLowerCase();
+      const pManager = (p.manager || '').toLowerCase();
+      const pEngineer = (p.siteEngineer || '').toLowerCase();
+      const pPmEmail = (p.pmEmail || '').toLowerCase();
+      const pSeEmail = (p.seEmail || '').toLowerCase();
+      const pEmEmail = (p.emEmail || '').toLowerCase();
+      const userEmailLower = currentUser?.email?.toLowerCase();
+
+      // 1. Direct workspace owner match
+      if (pOwner === activeWorkspaceOwnerEmail) return true;
+
+      // 2. Explicit ID / Email match for assigned PM, SE, or EM
+      if (userEmailLower) {
+        if (pPmEmail === userEmailLower || pSeEmail === userEmailLower || pEmEmail === userEmailLower) {
+          return true;
+        }
+      }
+
+      // 3. Fallback manager/engineer name string match for demo projects
+      if (currentUser?.name) {
+        const nameLower = currentUser.name.toLowerCase();
+        if (pManager.includes(nameLower) || pEngineer.includes(nameLower)) return true;
+      }
+
+      return activeWorkspaceOwnerEmail === 'admin@constructiq.io';
+    });
+  }, [projects, activeWorkspaceOwnerEmail, currentUser]);
+
+  // Audit Logs for System Admin Notification Engine
+  const [auditLogs, setAuditLogs] = useState(() => {
+    const saved = localStorage.getItem('constructiq_audit_logs');
+    return saved ? JSON.parse(saved) : [
+      {
+        id: 'log_1',
+        ownerEmail: 'admin@constructiq.io',
+        user: 'Vikram Patel (Site Engineer)',
+        role: 'site_eng',
+        action: 'Updated task "Foundation Concrete Pour" status to Completed',
+        timestamp: '10:15 AM',
+        date: 'Today',
+        unread: true
+      },
+      {
+        id: 'log_2',
+        ownerEmail: 'admin@constructiq.io',
+        user: 'Rohan Mehta (Project Manager)',
+        role: 'pm',
+        action: 'Recorded Material Expense ₹15,00,000 for TMT Steel Bars',
+        timestamp: '09:30 AM',
+        date: 'Today',
+        unread: true
+      },
+      {
+        id: 'log_3',
+        ownerEmail: 'admin@constructiq.io',
+        user: 'Executive Leadership',
+        role: 'management',
+        action: 'Generated Weekly Executive Risk Summary Report',
+        timestamp: 'Yesterday',
+        date: 'Yesterday',
+        unread: false
+      }
+    ];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('constructiq_audit_logs', JSON.stringify(auditLogs));
+  }, [auditLogs]);
+
+  const logAuditAction = (actionText, userDetail) => {
+    let actor = userDetail;
+    if (!actor || actor === 'Site User') {
+      try {
+        const session = JSON.parse(localStorage.getItem('constructiq_session') || '{}');
+        if (session && session.name) {
+          const roleLabel = session.role === 'pm' ? 'Project Manager' : session.role === 'site_eng' ? 'Site Engineer' : session.role === 'management' ? 'Executive Mgmt' : 'System Admin';
+          actor = `${session.name} (${roleLabel})`;
+        } else {
+          actor = 'Authorized Operational User';
+        }
+      } catch {
+        actor = 'Authorized Operational User';
+      }
+    }
+
+    const newLog = {
+      id: `log_${Date.now()}`,
+      ownerEmail: activeWorkspaceOwnerEmail,
+      user: actor,
+      action: actionText,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      date: new Date().toLocaleDateString(),
+      unread: true
+    };
+    setAuditLogs(prev => [newLog, ...prev]);
+  };
+
+  const clearAuditNotifications = () => {
+    setAuditLogs(prev => prev.map(l => ({ ...l, unread: false })));
+  };
+
   const [activeRole, setActiveRole] = useState(() => {
     return localStorage.getItem('constructiq_role') || 'pm';
   });
 
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [selectedProjectId, setSelectedProjectId] = useState('p001');
+  const [selectedProjectId, setSelectedProjectId] = useState(null);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [toast, setToast] = useState(null);
+
+  // Automatically keep selectedProjectId in sync with userProjects
+  useEffect(() => {
+    if (userProjects.length > 0) {
+      if (!selectedProjectId || !userProjects.some(p => p.id === selectedProjectId)) {
+        setSelectedProjectId(userProjects[0].id);
+      }
+    }
+  }, [userProjects, selectedProjectId]);
 
   // Sync to localStorage
   useEffect(() => {
@@ -116,7 +236,7 @@ export function AppProvider({ children }) {
 
   // Selected project object
   const selectedProject = useMemo(() => {
-    return projects.find(p => p.id === selectedProjectId) || projects[0] || {
+    return userProjects.find(p => p.id === selectedProjectId) || userProjects[0] || {
       id: "p_default",
       name: "Default Construction Site",
       client: "Enterprise Client",
@@ -125,38 +245,36 @@ export function AppProvider({ children }) {
       progress: 50,
       status: "In Progress"
     };
-  }, [projects, selectedProjectId]);
+  }, [userProjects, selectedProjectId]);
 
   // Compute live explainable risk model for selected project
   const riskAnalysis = useMemo(() => {
-    const heroTasks = tasks.filter(t => t.projectId === selectedProjectId || (selectedProject && t.projectName === selectedProject.name));
-    const heroMaterials = materials.filter(m => !m.projectId || m.projectId === selectedProjectId);
-    return calculateProjectRisk({
-      tasks: heroTasks.length > 0 ? heroTasks : tasks,
-      materials: heroMaterials.length > 0 ? heroMaterials : materials,
-      project: selectedProject,
-      issues: issues.filter(i => i.projectId === selectedProjectId || (selectedProject && i.projectName === selectedProject.name))
-    });
-  }, [tasks, materials, selectedProject, issues, selectedProjectId]);
+    return calculateProjectRisk(selectedProject, tasks, materials, expenses, issues);
+  }, [selectedProject, tasks, materials, expenses, issues]);
 
-  // Project CRUD
+  // Project CRUD operations
   const addProject = (newProject) => {
     const projObj = {
       id: `p_${Date.now()}`,
-      budget: 100000000,
+      ownerEmail: activeWorkspaceOwnerEmail,
+      name: "New Construction Project",
+      client: "Private Client",
+      location: "Site Location",
+      budget: 50000000,
       spent: 0,
-      predictedFinalCost: newProject.budget || 100000000,
+      predictedFinalCost: 50000000,
       forecastOverrun: 0,
       progress: 0,
-      plannedProgress: 0,
+      plannedProgress: 5,
       status: "On Track",
       riskLevel: "LOW",
       riskScore: 10,
-      startDate: new Date().toISOString().split('T')[0],
       targetDate: "2027-12-31",
-      manager: activeRole === 'pm' ? 'Rohan Mehta' : 'Site Lead',
-      siteEngineer: "Vikram Patel",
       category: "Commercial Infrastructure",
+      manager: currentUser?.name || "Project Manager",
+      weatherImpact: "NORMAL",
+      contractorPerformance: "GOOD",
+      materialAvailability: "HIGH",
       workforceAvailable: 95,
       ...newProject
     };
@@ -270,27 +388,34 @@ export function AppProvider({ children }) {
       ...newTask
     };
     setTasks(prev => [taskObj, ...prev]);
+    logAuditAction(`Created new task "${taskObj.name}" for ${selectedProject.name}`);
     showToast(`Task "${taskObj.name}" created successfully.`, 'success');
   };
 
   const updateTask = (taskId, updatedData) => {
     setTasks(prev => prev.map(t => t.id === taskId ? { ...t, ...updatedData } : t));
+    logAuditAction(`Updated task details in ${selectedProject.name}`);
     showToast("Task updated.", 'info');
   };
 
   const deleteTask = (taskId) => {
+    const target = tasks.find(t => t.id === taskId);
     setTasks(prev => prev.filter(t => t.id !== taskId));
+    logAuditAction(`Deleted task "${target?.name || taskId}" from ${selectedProject.name}`);
     showToast("Task removed.", 'warning');
   };
 
   const updateTaskStatus = (taskId, newStatus) => {
+    let taskName = '';
     setTasks(prev => prev.map(t => {
       if (t.id === taskId) {
+        taskName = t.name;
         const updatedProgress = newStatus === 'Completed' ? 100 : newStatus === 'Pending' ? 0 : t.progress;
         return { ...t, status: newStatus, progress: updatedProgress };
       }
       return t;
     }));
+    logAuditAction(`Updated status of task "${taskName}" to ${newStatus}`);
     showToast(`Task status updated to ${newStatus}.`, 'info');
   };
 
@@ -323,6 +448,7 @@ export function AppProvider({ children }) {
       return p;
     }));
 
+    logAuditAction(`Recorded ${tx.category} Expense ₹${Number(tx.amount).toLocaleString('en-IN')} ("${tx.description}")`);
     showToast(`Expense ₹${Number(tx.amount).toLocaleString('en-IN')} recorded under ${tx.category}.`, 'success');
   };
 
@@ -339,11 +465,14 @@ export function AppProvider({ children }) {
       ...newIssue
     };
     setIssues(prev => [issueObj, ...prev]);
+    logAuditAction(`Reported Site Issue "${issueObj.title}" on ${selectedProject.name}`);
     showToast(`Operational Issue "${issueObj.title}" logged.`, 'warning');
   };
 
   const resolveIssue = (issueId) => {
+    const target = issues.find(i => i.id === issueId);
     setIssues(prev => prev.map(i => i.id === issueId ? { ...i, status: "Resolved" } : i));
+    logAuditAction(`Marked Site Issue "${target?.title || issueId}" as RESOLVED`);
     showToast(`Issue resolved.`, 'success');
   };
 
@@ -490,13 +619,31 @@ export function AppProvider({ children }) {
     showToast("ConstructIQ platform data reset to initial benchmark state.", 'info');
   };
 
-  // Computed counts
-  const lowStockCount = materials.filter(m => m.available < m.minLevel).length;
-  const openIssuesCount = issues.filter(i => i.status !== "Resolved").length;
+  // Computed counts for the currently selected project
+  const isDummyProject = ['p001', 'p002', 'p003', 'p004', 'p005'].includes(selectedProjectId);
+
+  const activeProjectTasks = tasks.filter(t => 
+    t.projectId === selectedProjectId || (!t.projectId && isDummyProject)
+  );
+  const activeProjectMaterials = materials.filter(m => 
+    m.projectId === selectedProjectId || (!m.projectId && isDummyProject)
+  );
+  const activeProjectIssues = issues.filter(i => 
+    i.projectId === selectedProjectId || (!i.projectId && isDummyProject)
+  );
+
+  const delayedTasksCount = activeProjectTasks.filter(t => t.status === 'DELAYED' || t.status === 'Delayed').length;
+  const lowStockCount = activeProjectMaterials.filter(m => {
+    const stock = m.currentStock ?? m.available ?? 0;
+    const min = m.minThreshold ?? m.minLevel ?? 0;
+    return stock <= min;
+  }).length;
+  const openIssuesCount = activeProjectIssues.filter(i => i.status === 'OPEN' || i.status === 'Open' || (i.status !== 'RESOLVED' && i.status !== 'Resolved')).length;
 
   return (
     <AppContext.Provider value={{
-      projects,
+      projects: userProjects,
+      allProjects: projects,
       tasks,
       materials,
       materialRequests,
@@ -513,8 +660,12 @@ export function AppProvider({ children }) {
       setSelectedProjectId,
       selectedProject,
       riskAnalysis,
+      delayedTasksCount,
       lowStockCount,
       openIssuesCount,
+      auditLogs,
+      logAuditAction,
+      clearAuditNotifications,
       createMaterialRequest,
       approveMaterialRequest,
       addProject,

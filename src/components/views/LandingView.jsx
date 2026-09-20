@@ -57,16 +57,16 @@ export default function LandingView() {
       {/* Hero Section */}
       <section className="relative px-6 md:px-12 py-20 max-w-7xl mx-auto text-center overflow-hidden">
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#E5EFE2] border border-[#C6DCBF] text-[#275232] text-xs font-bold mb-6">
-          <Sparkles className="w-4 h-4" />
-          <span>Smart Construction Data Intelligence Platform</span>
+          <Sparkles className="w-4 h-4 text-[#275232]" />
+          <span>Construction Project & Risk Management System</span>
         </div>
 
         <h1 className="text-4xl md:text-6xl font-black text-[#1E231F] tracking-tight max-w-4xl mx-auto leading-tight">
-          From Construction Data to <span className="text-[#275232]">Better Decisions.</span>
+          Eliminate Site Delays & Budget Overruns with <span className="text-[#275232]">Live Telemetry</span>
         </h1>
 
         <p className="mt-6 text-base md:text-lg text-[#6E726E] max-w-2xl mx-auto leading-relaxed">
-          ConstructIQ converts raw site logs, budgets, and material inventory into explainable risk alerts, automated reports, and actionable AI recommendations.
+          Unified site management connecting Project Managers, Site Engineers, and Executive Leadership with real-time BOQ tracking and automated risk modeling.
         </p>
 
         <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -74,24 +74,24 @@ export default function LandingView() {
             onClick={() => setAuthScreen('login')}
             className="w-full sm:w-auto px-8 py-4 bg-[#275232] hover:bg-[#1E3F27] text-white font-extrabold text-sm rounded-xl shadow-sm transition-all flex items-center justify-center gap-2"
           >
-            <span>Create Free Account</span>
+            <span>Initialize Project Workspace</span>
             <ArrowRight className="w-4 h-4" />
           </button>
           <button
             onClick={() => setAuthScreen('login')}
             className="w-full sm:w-auto px-8 py-4 bg-white hover:bg-[#F7F5F0] text-[#1E231F] border border-[#E5E2DA] font-extrabold text-sm rounded-xl transition-all"
           >
-            Sign In to Workspace
+            Sign In to Existing Portal
           </button>
         </div>
 
-        {/* Hero Product Preview */}
-        <div className="mt-16 rounded-2xl bg-white border border-[#E5E2DA] p-4 md:p-8 shadow-sm text-left relative">
-          <div className="flex items-center justify-between border-b border-[#E5E2DA] pb-4 mb-6">
-            <div className="flex items-center gap-3">
-              <div className="w-3 h-3 rounded-full bg-[#DC2626]" />
+        {/* Hero Interactive Preview */}
+        <div className="mt-16 bg-white rounded-2xl border border-[#E5E2DA] shadow-xl p-6 text-left max-w-4xl mx-auto space-y-4">
+          <div className="flex items-center justify-between border-b border-[#E5E2DA] pb-3">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-[#991B1B]" />
               <div className="w-3 h-3 rounded-full bg-[#D97706]" />
-              <div className="w-3 h-3 rounded-full bg-[#166534]" />
+              <div className="w-3 h-3 rounded-full bg-[#275232]" />
               <span className="text-xs font-bold text-[#6E726E] ml-2">ConstructIQ — Live Site Telemetry Command Center</span>
             </div>
             <span className="text-xs font-bold text-[#275232] bg-[#E5EFE2] px-3 py-1 rounded-full border border-[#C6DCBF]">
@@ -103,7 +103,10 @@ export default function LandingView() {
             <div className="p-4 rounded-xl bg-[#F7F5F0] border border-[#E5E2DA]">
               <span className="text-[10px] font-bold text-[#6E726E] uppercase">Physical Progress</span>
               <div className="text-2xl font-black text-[#1E231F] mt-1">68%</div>
-              <div className="text-xs text-[#991B1B] font-semibold mt-1">⚠ 2% behind target schedule</div>
+              <div className="text-xs text-[#991B1B] font-semibold mt-1 flex items-center gap-1">
+                <AlertTriangle className="w-3.5 h-3.5" />
+                <span>2% behind target schedule</span>
+              </div>
             </div>
             <div className="p-4 rounded-xl bg-[#F7F5F0] border border-[#E5E2DA]">
               <span className="text-[10px] font-bold text-[#6E726E] uppercase">Budget Utilization</span>
@@ -113,7 +116,10 @@ export default function LandingView() {
             <div className="p-4 rounded-xl bg-[#F7F5F0] border border-[#E5E2DA]">
               <span className="text-[10px] font-bold text-[#6E726E] uppercase">Steel TMT Inventory</span>
               <div className="text-2xl font-black text-[#991B1B] mt-1">12 Tons</div>
-              <div className="text-xs text-[#991B1B] font-semibold mt-1">⚠ Below 15T threshold (Req +6T)</div>
+              <div className="text-xs text-[#991B1B] font-semibold mt-1 flex items-center gap-1">
+                <AlertTriangle className="w-3.5 h-3.5" />
+                <span>Below 15T threshold (Req +6T)</span>
+              </div>
             </div>
           </div>
         </div>

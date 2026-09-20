@@ -78,59 +78,88 @@ export default function ReportsView() {
         </div>
 
         {/* Activity Status Breakdown */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Completed */}
-          <div className="space-y-3 p-4 rounded-xl bg-[#E5EFE2] border border-[#C6DCBF] print:border-emerald-300">
-            <h4 className="text-xs font-bold text-[#275232] print:text-emerald-700 uppercase tracking-wider flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4" />
-              Completed Milestones
-            </h4>
-            <ul className="space-y-2 text-xs text-[#1E231F] print:text-gray-800 font-medium">
-              <li className="flex items-center gap-2">✓ Foundation Work (100% complete - Block A & B)</li>
-              <li className="flex items-center gap-2">✓ Structural Work milestone (RRC Frame 82% complete)</li>
-            </ul>
-          </div>
+        {(() => {
+          const projectTasks = tasks.filter(t => t.projectId === selectedProject.id || t.projectName === selectedProject.name);
+          const completedTasks = projectTasks.filter(t => t.progress === 100 || t.status === 'Completed');
+          const delayedTasks = projectTasks.filter(t => t.status === 'Delayed');
+          const lowStockItem = materials.find(m => m.projectId === selectedProject.id && m.available < m.minLevel);
 
-          {/* Delayed */}
-          <div className="space-y-3 p-4 rounded-xl bg-[#FEE2E2] border border-[#FCA5A5] print:border-red-300">
-            <h4 className="text-xs font-bold text-[#991B1B] print:text-red-700 uppercase tracking-wider flex items-center gap-1.5">
-              <AlertTriangle className="w-4 h-4" />
-              Delayed & Blocked Activities
-            </h4>
-            <ul className="space-y-2 text-xs text-[#991B1B] print:text-red-700 font-medium">
-              <li className="flex items-center gap-2 font-bold">
-                ! Electrical Installation (45% vs expected 65%, due 20 Sep 2026)
-              </li>
-              <li className="text-[11px] text-[#7F1D1D] print:text-gray-600 pl-4 font-normal">
-                Subcontractor PowerGrid understaffed by 8 technicians.
-              </li>
-            </ul>
-          </div>
-        </div>
+          return (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Completed */}
+                <div className="space-y-3 p-4 rounded-xl bg-[#E5EFE2] border border-[#C6DCBF] print:border-emerald-300">
+                  <h4 className="text-xs font-bold text-[#275232] print:text-emerald-700 uppercase tracking-wider flex items-center gap-1.5">
+                    <CheckCircle2 className="w-4 h-4" />
+                    Completed Milestones ({completedTasks.length})
+                  </h4>
+                  <ul className="space-y-2 text-xs text-[#1E231F] print:text-gray-800 font-medium">
+                    {completedTasks.length > 0 ? (
+                      completedTasks.map(t => (
+                        <li key={t.id} className="flex items-center gap-2">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-[#275232] shrink-0" />
+                          <span>{t.name} (100% complete)</span>
+                        </li>
+                      ))
+                    ) : (
+                      <li className="text-[#6E726E] italic">No completed milestones recorded yet.</li>
+                    )}
+                  </ul>
+                </div>
 
-        {/* Material Alert Section */}
-        <div className="p-4 rounded-xl bg-[#FEF3C7] border border-[#FDE68A] print:border-amber-400 space-y-2">
-          <h4 className="text-xs font-bold text-[#92400E] print:text-amber-800 uppercase tracking-wider flex items-center gap-1.5">
-            <AlertTriangle className="w-4 h-4 text-[#D97706]" />
-            Material & Inventory Alert
-          </h4>
-          <p className="text-xs text-[#78350F] print:text-amber-900 font-medium">
-            ! Steel TMT Bar inventory is below minimum threshold (12 tons available vs 15 tons required minimum level). Recommended procurement: 6 tons.
-          </p>
-        </div>
+                {/* Delayed */}
+                <div className="space-y-3 p-4 rounded-xl bg-[#FEE2E2] border border-[#FCA5A5] print:border-red-300">
+                  <h4 className="text-xs font-bold text-[#991B1B] print:text-red-700 uppercase tracking-wider flex items-center gap-1.5">
+                    <AlertTriangle className="w-4 h-4" />
+                    Delayed & Blocked Activities ({delayedTasks.length})
+                  </h4>
+                  <ul className="space-y-2 text-xs text-[#991B1B] print:text-red-700 font-medium">
+                    {delayedTasks.length > 0 ? (
+                      delayedTasks.map(t => (
+                        <li key={t.id} className="flex flex-col">
+                          <span className="font-bold">! {t.name} ({t.progress}% vs target, due {t.dueDate})</span>
+                          <span className="text-[11px] text-[#7F1D1D] print:text-gray-600 font-normal">Assigned: {t.assignedTo}</span>
+                        </li>
+                      ))
+                    ) : (
+                      <li className="text-[#275232] italic font-normal">No delayed activities detected for this site.</li>
+                    )}
+                  </ul>
+                </div>
+              </div>
 
-        {/* Recommended Actions */}
-        <div className="space-y-3 p-5 rounded-xl bg-[#F7F5F0] print:bg-gray-100 border border-[#E5E2DA] print:border-gray-300">
-          <h4 className="text-xs font-bold text-[#275232] print:text-blue-800 uppercase tracking-wider">
-            Recommended Management Actions
-          </h4>
-          <ol className="list-decimal list-inside space-y-2 text-xs text-[#1E231F] print:text-gray-800 font-medium">
-            <li>Procure additional 6 tons of TMT Steel immediately.</li>
-            <li>Assign additional workers to electrical conduit installation.</li>
-            <li>Review electrical contractor schedule with PowerGrid Lead.</li>
-            <li>Monitor material procurement budget utilization rate.</li>
-          </ol>
-        </div>
+              {/* Material Alert Section */}
+              <div className={`p-4 rounded-xl border space-y-2 ${lowStockItem ? 'bg-[#FEF3C7] border-[#FDE68A] print:border-amber-400' : 'bg-[#E5EFE2] border-[#C6DCBF]'}`}>
+                <h4 className={`text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 ${lowStockItem ? 'text-[#92400E]' : 'text-[#275232]'}`}>
+                  <AlertTriangle className="w-4 h-4" />
+                  Material & Inventory Status
+                </h4>
+                <p className={`text-xs font-medium ${lowStockItem ? 'text-[#78350F]' : 'text-[#275232]'}`}>
+                  {lowStockItem 
+                    ? `! ${lowStockItem.name} inventory is below threshold (${lowStockItem.available} ${lowStockItem.unit} vs min ${lowStockItem.minLevel} ${lowStockItem.unit}).`
+                    : 'All site material reserves are operating within healthy safety parameters.'}
+                </p>
+              </div>
+
+              {/* Recommended Actions */}
+              <div className="space-y-3 p-5 rounded-xl bg-[#F7F5F0] print:bg-gray-100 border border-[#E5E2DA] print:border-gray-300">
+                <h4 className="text-xs font-bold text-[#275232] print:text-blue-800 uppercase tracking-wider">
+                  Recommended Management Actions
+                </h4>
+                <ol className="list-decimal list-inside space-y-2 text-xs text-[#1E231F] print:text-gray-800 font-medium">
+                  {riskAnalysis.reasons && riskAnalysis.reasons.length > 0 ? (
+                    riskAnalysis.reasons.map((reason, idx) => (
+                      <li key={idx}>Address {reason.toLowerCase()}</li>
+                    ))
+                  ) : (
+                    <li>Maintain scheduled pace for upcoming milestones.</li>
+                  )}
+                  <li>Monitor material procurement budget utilization rate.</li>
+                </ol>
+              </div>
+            </>
+          );
+        })()}
 
         {/* Footer Signature Block */}
         <div className="pt-6 border-t border-[#E5E2DA] print:border-gray-300 flex justify-between text-xs text-[#6E726E] print:text-gray-600">

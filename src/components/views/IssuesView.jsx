@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
-import { AlertOctagon, Plus, Search, CheckCircle2, User, Calendar, AlertTriangle } from 'lucide-react';
+import { AlertOctagon, Plus, Search, CheckCircle2, User, Calendar, AlertTriangle, Bot, CheckSquare } from 'lucide-react';
 import RiskBadge from '../common/RiskBadge';
 
+import { useApp } from '../../context/AppContext';
+
 export default function IssuesView({ issues, onAddIssue, onResolveIssue }) {
+  const { selectedProject, selectedProjectId, setActiveTab } = useApp();
   const [filterPriority, setFilterPriority] = useState('ALL');
   const [filterStatus, setFilterStatus] = useState('ALL');
   const [searchTerm, setSearchTerm] = useState('');
@@ -13,7 +16,11 @@ export default function IssuesView({ issues, onAddIssue, onResolveIssue }) {
   const [assignedTo, setAssignedTo] = useState('');
   const [desc, setDesc] = useState('');
 
-  const filteredIssues = issues.filter(i => {
+  const activeProjectIssues = issues.filter(i => 
+    i.projectId === selectedProjectId || (selectedProject && i.projectName === selectedProject.name)
+  );
+
+  const filteredIssues = activeProjectIssues.filter(i => {
     const matchesPrio = filterPriority === 'ALL' || i.priority === filterPriority;
     const matchesStat = filterStatus === 'ALL' || i.status === filterStatus;
     const matchesSearch = i.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -28,11 +35,12 @@ export default function IssuesView({ issues, onAddIssue, onResolveIssue }) {
     onAddIssue({
       id: `iss_${Date.now()}`,
       title,
-      projectName: "Ahmedabad Smart Residency",
+      projectId: selectedProjectId,
+      projectName: selectedProject?.name || "Construction Site",
       priority,
       assignedTo: assignedTo || "Site Lead",
       status: "Open",
-      createdAt: "2026-09-20",
+      createdAt: new Date().toISOString().split('T')[0],
       description: desc || "Reported site bottleneck requiring management review."
     });
 
@@ -51,13 +59,31 @@ export default function IssuesView({ issues, onAddIssue, onResolveIssue }) {
           <p className="text-xs text-[#6E726E]">Log bottlenecks, material delays, subcontractor delays, and safety audits.</p>
         </div>
 
-        <button
-          onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-[#275232] hover:bg-[#1E3F27] text-white font-bold text-xs rounded-xl shadow-xs transition-colors shrink-0"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Report New Issue</span>
-        </button>
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={() => setActiveTab('ai-assistant')}
+            className="flex items-center gap-2 px-3.5 py-2 bg-[#E5EFE2] hover:bg-[#D9E8D6] text-[#275232] border border-[#C6DCBF] font-semibold text-xs rounded-xl shadow-xs transition-colors"
+          >
+            <Bot className="w-3.5 h-3.5" />
+            <span>AI Risk Intelligence</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('tasks')}
+            className="flex items-center gap-2 px-3.5 py-2 bg-white hover:bg-[#F7F5F0] text-[#1E231F] border border-[#E5E2DA] font-semibold text-xs rounded-xl shadow-xs transition-colors"
+          >
+            <CheckSquare className="w-3.5 h-3.5 text-[#8C8275]" />
+            <span>Task Schedule</span>
+          </button>
+
+          <button
+            onClick={() => setShowModal(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-[#275232] hover:bg-[#1E3F27] text-white font-bold text-xs rounded-xl shadow-xs transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Report New Issue</span>
+          </button>
+        </div>
       </div>
 
       {/* Filter Controls */}

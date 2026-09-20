@@ -4,16 +4,32 @@ import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 
 export default function Header() {
-  const { projects, selectedProjectId, setSelectedProjectId, setIsCommandPaletteOpen, lowStockCount, openIssuesCount, setActiveTab } = useApp();
+  const { projects, selectedProjectId, setSelectedProjectId, setIsCommandPaletteOpen, lowStockCount, openIssuesCount, setActiveTab, auditLogs, clearAuditNotifications } = useApp();
   const { currentUser, logout } = useAuth();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [notifMenuOpen, setNotifMenuOpen] = useState(false);
   const menuRef = useRef(null);
+  const notifRef = useRef(null);
+
+  const isAdmin = currentUser?.role === 'admin';
+  const activeWorkspaceOwnerEmail = (currentUser?.ownerEmail || currentUser?.email || 'admin@constructiq.io').toLowerCase();
+
+  const userAuditLogs = (auditLogs || []).filter(l => {
+    const logOwner = (l.ownerEmail || 'admin@constructiq.io').toLowerCase();
+    return logOwner === activeWorkspaceOwnerEmail;
+  });
+
+  const unreadAuditCount = userAuditLogs.filter(l => l.unread).length;
+  const totalNotifCount = isAdmin ? unreadAuditCount : (lowStockCount + openIssuesCount);
 
   // Close menu on outside click
   useEffect(() => {
     function handleClick(e) {
       if (menuRef.current && !menuRef.current.contains(e.target)) {
         setUserMenuOpen(false);
+      }
+      if (notifRef.current && !notifRef.current.contains(e.target)) {
+        setNotifMenuOpen(false);
       }
     }
     document.addEventListener('mousedown', handleClick);
@@ -45,36 +61,66 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Right Actions */}
-      <div className="flex items-center gap-3">
-        {/* Site Online Badge */}
-        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E5EFE2] text-[#275232] text-xs font-medium border border-[#C6DCBF]">
-          <span className="w-2 h-2 rounded-full bg-[#275232] animate-pulse" />
-          <span>Live</span>
-        </div>
-
-        {/* Global Search */}
-        <button
-          onClick={() => setIsCommandPaletteOpen(true)}
-          className="p-2 text-[#4A524A] hover:text-[#1E231F] hover:bg-[#E5E2DA]/50 rounded-lg transition-colors"
-          title="Search (Ctrl+K)"
-        >
-          <Search className="w-4 h-4" />
-        </button>
-
+      {/* Right: Actions, Notifications, Profile */}
+      <div className="flex items-center gap-4">
         {/* Notification Bell */}
-        <button
-          onClick={() => setActiveTab('materials')}
-          className="p-2 text-[#4A524A] hover:text-[#1E231F] hover:bg-[#E5E2DA]/50 rounded-lg relative transition-colors"
-          title="Notifications"
-        >
-          <Bell className="w-4 h-4" />
-          {(lowStockCount > 0 || openIssuesCount > 0) && (
-            <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-600 text-white font-bold text-[9px] rounded-full flex items-center justify-center">
-              {lowStockCount + openIssuesCount}
-            </span>
+        <div className="relative" ref={notifRef}>
+          <button
+            onClick={() => setNotifMenuOpen(o => !o)}
+            className="relative p-2 rounded-xl bg-white border border-[#E5E2DA] text-[#6E726E] hover:text-[#1E231F] hover:bg-[#F7F5F0] transition-colors"
+          >
+            <Bell className="w-4 h-4" />
+            {totalNotifCount > 0 && (
+              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#991B1B] text-white text-[9px] font-black flex items-center justify-center animate-pulse">
+                {totalNotifCount}
+              </span>
+            )}
+          </button>
+
+          {/* Notifications Dropdown */}
+          {notifMenuOpen && (
+            <div className="absolute right-0 mt-2 w-80 bg-white border border-[#E5E2DA] rounded-2xl shadow-xl z-50 overflow-hidden text-left">
+              <div className="p-3 bg-[#F7F5F0] border-b border-[#E5E2DA] flex items-center justify-between">
+                <span className="text-xs font-bold text-[#1E231F]">
+                  {isAdmin ? 'System Audit Notifications' : 'Site Alerts'}
+                </span>
+                {isAdmin && unreadAuditCount > 0 && (
+                  <button
+                    onClick={clearAuditNotifications}
+                    className="text-[10px] font-bold text-[#275232] hover:underline"
+                  >
+                    Mark read
+                  </button>
+                )}
+              </div>
+
+              <div className="max-h-80 overflow-y-auto divide-y divide-[#E5E2DA]">
+                {isAdmin ? (
+                  userAuditLogs.length > 0 ? (
+                    userAuditLogs.map((log) => (
+                      <div key={log.id} className={`p-3 space-y-1 transition-colors ${log.unread ? 'bg-[#E5EFE2]/30' : 'bg-white'}`}>
+                        <div className="flex items-center justify-between text-[10px]">
+                          <span className="font-bold text-[#275232] bg-[#E5EFE2] px-2 py-0.5 rounded border border-[#C6DCBF]">
+                            {log.user}
+                          </span>
+                          <span className="text-[#8C8275]">{log.timestamp}</span>
+                        </div>
+                        <p className="text-xs text-[#1E231F] font-medium">{log.action}</p>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="p-4 text-center text-[#8C8275]">No audit logs recorded for your workspace.</div>
+                  )
+                ) : (
+                  <div className="p-4 space-y-2">
+                    <div className="flex justify-between items-center"><span className="text-[#6E726E]">Low Stock Items:</span> <span className="font-bold text-[#92400E]">{lowStockCount}</span></div>
+                    <div className="flex justify-between items-center"><span className="text-[#6E726E]">Open Site Issues:</span> <span className="font-bold text-[#991B1B]">{openIssuesCount}</span></div>
+                  </div>
+                )}
+              </div>
+            </div>
           )}
-        </button>
+        </div>
 
         {/* Quick Import */}
         <button

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   LayoutDashboard, 
   Building2, 
@@ -16,24 +16,52 @@ import {
   UploadCloud,
   Settings,
   Globe,
-  LogIn
+  LogIn,
+  ChevronDown,
+  ChevronRight
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
+import { useAuth } from '../../context/AuthContext';
 
 export default function Sidebar({ activeTab, setActiveTab, activeRole, setActiveRole, lowStockCount, openIssuesCount }) {
-  const navItems = [
+  const { currentUser } = useAuth();
+  const { delayedTasksCount: appDelayedCount, lowStockCount: appLowStockCount, openIssuesCount: appOpenIssuesCount } = useApp();
+  const effectiveRole = currentUser?.role || activeRole;
+
+  const finalDelayedCount = appDelayedCount ?? 0;
+  const finalLowStockCount = lowStockCount ?? appLowStockCount ?? 0;
+  const finalOpenIssuesCount = openIssuesCount ?? appOpenIssuesCount ?? 0;
+
+  const [collapsedGroups, setCollapsedGroups] = useState({
+    mainWorkspace: true,
+    siteOperations: true,
+    teamAssets: true,
+    intelligenceData: true
+  });
+  const [hoveredGroup, setHoveredGroup] = useState(null);
+
+  const mainNav = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'projects', label: 'Projects', icon: Building2 },
-    { id: 'tasks', label: 'Tasks', icon: CheckSquare, badge: '4 Delayed', badgeColor: 'bg-[#FEE2E2] text-[#991B1B]' },
-    { id: 'materials', label: 'Materials', icon: Boxes, badge: lowStockCount > 0 ? `${lowStockCount} Low` : null, badgeColor: 'bg-[#FEF3C7] text-[#92400E]' },
+  ];
+
+  const operationsNav = [
+    { id: 'tasks', label: 'Tasks', icon: CheckSquare, badge: finalDelayedCount > 0 ? `${finalDelayedCount} Delayed` : null, badgeColor: 'bg-[#FEE2E2] text-[#991B1B]' },
+    { id: 'materials', label: 'Materials', icon: Boxes, badge: finalLowStockCount > 0 ? `${finalLowStockCount} Low` : null, badgeColor: 'bg-[#FEF3C7] text-[#92400E]' },
     { id: 'expenses', label: 'Expenses', icon: TrendingUp },
-    { id: 'issues', label: 'Issues & Risks', icon: AlertOctagon, badge: openIssuesCount > 0 ? `${openIssuesCount}` : null, badgeColor: 'bg-[#FEE2E2] text-[#991B1B]' },
+    { id: 'issues', label: 'Issues & Risks', icon: AlertOctagon, badge: finalOpenIssuesCount > 0 ? `${finalOpenIssuesCount}` : null, badgeColor: 'bg-[#FEE2E2] text-[#991B1B]' },
+  ];
+
+  const teamNav = [
     { id: 'team', label: 'Team & Contractors', icon: Users },
     { id: 'documents', label: 'Documents & BOQ', icon: FolderCheck },
+  ];
+
+  const intelligenceNav = [
+    { id: 'ai-assistant', label: 'AI Assistant', icon: Bot, highlight: true, badge: 'LIVE', badgeColor: 'bg-[#275232] text-white' },
     { id: 'analytics', label: 'Analytics', icon: BarChart3 },
-    { id: 'import', label: 'Import CSV Data', icon: UploadCloud, highlight: true },
-    { id: 'ai-assistant', label: 'AI Assistant', icon: Bot, highlight: true },
-    { id: 'reports', label: 'Weekly Report', icon: FileText }
+    { id: 'reports', label: 'Weekly Report', icon: FileText },
+    { id: 'import', label: 'Import CSV Data', icon: UploadCloud },
   ];
 
   const roles = [
@@ -44,115 +72,132 @@ export default function Sidebar({ activeTab, setActiveTab, activeRole, setActive
   ];
 
   const getRoleDisplayName = () => {
-    if (activeRole === 'pm') return 'Rohan Mehta';
-    if (activeRole === 'admin') return 'System Administrator';
-    if (activeRole === 'site_eng') return 'Vikram Patel';
+    if (currentUser?.name) return currentUser.name;
+    if (effectiveRole === 'pm') return 'Rohan Mehta';
+    if (effectiveRole === 'admin') return 'System Administrator';
+    if (effectiveRole === 'site_eng') return 'Vikram Patel';
     return 'Executive Mgmt';
   };
 
   const getRoleTitle = () => {
-    if (activeRole === 'pm') return 'Project Manager';
-    if (activeRole === 'admin') return 'Admin';
-    if (activeRole === 'site_eng') return 'Site Engineer';
-    return 'Executive';
+    if (effectiveRole === 'pm') return 'Project Manager';
+    if (effectiveRole === 'admin') return 'System Administrator';
+    if (effectiveRole === 'site_eng') return 'Site Engineer';
+    return 'Executive Leadership';
+  };
+
+  const toggleGroup = (groupId) => {
+    setCollapsedGroups(prev => ({
+      ...prev,
+      [groupId]: !prev[groupId]
+    }));
+  };
+
+  const renderNavGroup = (groupId, title, items) => {
+    const isCollapsed = Boolean(collapsedGroups[groupId]);
+    const isHovered = hoveredGroup === groupId;
+    const isOpen = !isCollapsed || isHovered;
+
+    return (
+      <div 
+        key={groupId} 
+        className="space-y-0.5 rounded-lg transition-all duration-150"
+        onMouseEnter={() => setHoveredGroup(groupId)}
+        onMouseLeave={() => setHoveredGroup(null)}
+      >
+        <button
+          type="button"
+          onClick={() => toggleGroup(groupId)}
+          className="w-full flex items-center justify-between px-3 pt-2.5 pb-1 text-[10px] font-extrabold text-[#8C8275] uppercase tracking-wider hover:text-[#1E231F] group select-none transition-colors rounded-md hover:bg-[#E5E2DA]/40 cursor-pointer"
+        >
+          <div className="flex items-center gap-1.5">
+            <span>{title}</span>
+          </div>
+          <div className="flex items-center gap-1 text-[#8C8275] group-hover:text-[#1E231F]">
+            {isCollapsed && !isHovered && (
+              <span className="text-[9px] lowercase font-semibold text-[#8C8275] opacity-0 group-hover:opacity-100 transition-opacity">
+                hover
+              </span>
+            )}
+            {isOpen ? (
+              <ChevronDown className="w-3.5 h-3.5 transition-transform duration-200" />
+            ) : (
+              <ChevronRight className="w-3.5 h-3.5 transition-transform duration-200" />
+            )}
+          </div>
+        </button>
+
+        <div 
+          className={`overflow-hidden transition-all duration-200 ease-in-out ${
+            isOpen ? 'max-h-[300px] opacity-100' : 'max-h-0 opacity-0 pointer-events-none'
+          }`}
+        >
+          {items.map((item) => {
+            const Icon = item.icon;
+            const isActive = activeTab === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => setActiveTab(item.id)}
+                className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors duration-150 group ${
+                  isActive 
+                    ? 'bg-[#D9E8D6] text-[#275232] shadow-xs' 
+                    : item.highlight 
+                    ? 'bg-[#E5EFE2] text-[#275232] hover:bg-[#D9E8D6]/70 border border-[#C6DCBF]'
+                    : 'text-[#4A524A] hover:text-[#1E231F] hover:bg-[#E5E2DA]/60'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <Icon className={`w-4 h-4 ${isActive ? 'text-[#275232]' : 'text-[#8C8275] group-hover:text-[#1E231F]'}`} />
+                  <span>{item.label}</span>
+                </div>
+                {item.badge && (
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${item.badgeColor || 'bg-[#E5E2DA] text-[#4A524A]'}`}>
+                    {item.badge}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
   };
 
   return (
     <aside className="w-64 bg-[#EFECE6] border-r border-[#E5E2DA] flex flex-col h-screen fixed left-0 top-0 z-30 select-none">
       {/* Brand Header */}
-      <div className="p-5 border-b border-[#E5E2DA]">
+      <div className="p-4 border-b border-[#E5E2DA]">
         <div className="flex items-center gap-3 cursor-pointer" onClick={() => setActiveTab('dashboard')}>
-          <div className="p-2.5 bg-[#275232] text-white rounded-lg shadow-xs">
-            <HardHat className="w-6 h-6 fill-current" />
+          <div className="p-2 bg-[#275232] text-white rounded-lg shadow-xs">
+            <HardHat className="w-5 h-5 fill-current" />
           </div>
           <div>
-            <h1 className="text-xl font-bold tracking-tight text-[#1E231F] flex items-center gap-1.5">
+            <h1 className="text-lg font-bold tracking-tight text-[#1E231F] flex items-center gap-1.5">
               ConstructIQ
             </h1>
-            <p className="text-[10px] text-[#8C8275] font-semibold tracking-widest uppercase">SITE INTELLIGENCE</p>
+            <p className="text-[9px] text-[#8C8275] font-semibold tracking-widest uppercase">SITE INTELLIGENCE</p>
           </div>
         </div>
       </div>
 
-      {/* Role Switcher Banner */}
-      <div className="px-4 py-2 bg-[#E7E3DC] border-b border-[#E5E2DA] flex items-center justify-between">
-        <div className="flex items-center gap-1.5 text-xs text-[#1E231F] w-full">
+      {/* Role Status */}
+      <div className="px-3.5 py-2 bg-[#E7E3DC] border-b border-[#E5E2DA]">
+        <div className="flex items-center gap-1.5 text-xs text-[#1E231F]">
           <UserCheck className="w-3.5 h-3.5 text-[#275232] shrink-0" />
-          <span className="text-[#8C8275] font-medium text-[11px]">Role:</span>
-          <select 
-            value={activeRole} 
-            onChange={(e) => setActiveRole(e.target.value)}
-            className="flex-1 bg-white text-[11px] font-semibold text-[#1E231F] px-2 py-1 rounded border border-[#E5E2DA] cursor-pointer focus:outline-none focus:border-[#275232] truncate"
-          >
-            {roles.map(r => (
-              <option key={r.id} value={r.id}>{r.name}</option>
-            ))}
-          </select>
+          <span className="text-[#8C8275] font-semibold text-[10px]">Role:</span>
+          <span className="text-[10px] font-extrabold text-[#275232] bg-[#E5EFE2] px-2 py-0.5 rounded border border-[#C6DCBF] truncate">
+            {getRoleTitle()}
+          </span>
         </div>
       </div>
 
       {/* Main Navigation */}
-      <nav className="flex-1 overflow-y-auto p-3 space-y-1">
-        <div className="px-3 py-1.5 text-[10px] font-bold text-[#8C8275] uppercase tracking-wider">
-          WORKSPACE
-        </div>
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = activeTab === item.id;
-          return (
-            <button
-              key={item.id}
-              onClick={() => setActiveTab(item.id)}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition-colors duration-150 group ${
-                isActive 
-                  ? 'bg-[#D9E8D6] text-[#275232] shadow-xs' 
-                  : item.highlight 
-                  ? 'bg-[#E5EFE2] text-[#275232] hover:bg-[#D9E8D6]/70 border border-[#C6DCBF]'
-                  : 'text-[#4A524A] hover:text-[#1E231F] hover:bg-[#E5E2DA]/60'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <Icon className={`w-4 h-4 ${isActive ? 'text-[#275232]' : 'text-[#8C8275] group-hover:text-[#1E231F]'}`} />
-                <span>{item.label}</span>
-              </div>
-              {item.badge && (
-                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${item.badgeColor || 'bg-[#E5E2DA] text-[#4A524A]'}`}>
-                  {item.badge}
-                </span>
-              )}
-            </button>
-          );
-        })}
-
-        <div className="pt-3 px-3 py-1.5 text-[10px] font-bold text-[#8C8275] uppercase tracking-wider">
-          PLATFORM & SYSTEM
-        </div>
-        
-        <button
-          onClick={() => setActiveTab('settings')}
-          className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-semibold transition-colors ${
-            activeTab === 'settings' ? 'bg-[#D9E8D6] text-[#275232]' : 'text-[#4A524A] hover:text-[#1E231F] hover:bg-[#E5E2DA]/60'
-          }`}
-        >
-          <Settings className="w-4 h-4 text-[#8C8275]" />
-          <span>Platform Settings</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('landing')}
-          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-semibold text-[#4A524A] hover:text-[#1E231F] hover:bg-[#E5E2DA]/60 transition-colors"
-        >
-          <Globe className="w-4 h-4 text-[#8C8275]" />
-          <span>Public Portal</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('login')}
-          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-semibold text-[#4A524A] hover:text-[#1E231F] hover:bg-[#E5E2DA]/60 transition-colors"
-        >
-          <LogIn className="w-4 h-4 text-[#8C8275]" />
-          <span>Sign In / Switch Role</span>
-        </button>
+      <nav className="flex-1 overflow-y-auto p-2.5 space-y-1">
+        {renderNavGroup("mainWorkspace", "Main Workspace", mainNav)}
+        {renderNavGroup("siteOperations", "Site Operations", operationsNav)}
+        {renderNavGroup("teamAssets", "Team & Assets", teamNav)}
+        {renderNavGroup("intelligenceData", "Intelligence & Data", intelligenceNav)}
       </nav>
 
       {/* User Footer Profile */}

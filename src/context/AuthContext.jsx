@@ -30,15 +30,70 @@ export const ROLES = [
   },
 ];
 
+// Default accounts managed by System Admin
+export const DEFAULT_ROLE_USERS = [
+  {
+    id: 'u_admin',
+    name: 'System Administrator',
+    email: 'admin@constructiq.io',
+    password: 'admin123',
+    role: 'admin',
+    ownerEmail: 'admin@constructiq.io',
+    needsSiteSetup: false,
+    sites: []
+  },
+  {
+    id: 'u_pm',
+    name: 'Rohan Mehta',
+    email: 'pm@constructiq.io',
+    password: 'pm123',
+    role: 'pm',
+    ownerEmail: 'admin@constructiq.io',
+    needsSiteSetup: false,
+    sites: []
+  },
+  {
+    id: 'u_site_eng',
+    name: 'Vikram Patel',
+    email: 'eng@constructiq.io',
+    password: 'eng123',
+    role: 'site_eng',
+    ownerEmail: 'admin@constructiq.io',
+    needsSiteSetup: false,
+    sites: []
+  },
+  {
+    id: 'u_management',
+    name: 'Executive Leadership',
+    email: 'exec@constructiq.io',
+    password: 'exec123',
+    role: 'management',
+    ownerEmail: 'admin@constructiq.io',
+    needsSiteSetup: false,
+    sites: []
+  }
+];
+
 const STORAGE_KEY = 'constructiq_users';
 const SESSION_KEY = 'constructiq_session';
 
 function loadUsers() {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
-    return saved ? JSON.parse(saved) : [];
+    if (!saved) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_ROLE_USERS));
+      return DEFAULT_ROLE_USERS;
+    }
+    const parsed = JSON.parse(saved);
+    // Ensure all 4 role users exist
+    DEFAULT_ROLE_USERS.forEach(def => {
+      if (!parsed.some(u => u.role === def.role)) {
+        parsed.push(def);
+      }
+    });
+    return parsed;
   } catch {
-    return [];
+    return DEFAULT_ROLE_USERS;
   }
 }
 
@@ -49,9 +104,9 @@ function saveUsers(users) {
 function loadSession() {
   try {
     const saved = localStorage.getItem(SESSION_KEY);
-    return saved ? JSON.parse(saved) : null;
+    return saved ? JSON.parse(saved) : DEFAULT_ROLE_USERS[0];
   } catch {
-    return null;
+    return DEFAULT_ROLE_USERS[0];
   }
 }
 
@@ -82,31 +137,80 @@ export function AuthProvider({ children }) {
 
   /**
    * Sign up: creates account, logs in, and flags that site setup is needed.
-   * Returns { success, error }
+   * If signing up as System Admin, also updates/creates sub-role accounts (PM, SE, EM).
    */
-  const signup = ({ name, email, password, role }) => {
+  const signup = ({ name, email, password, role, subRoles }) => {
     if (!name || !email || !password || !role) {
       return { success: false, error: 'All fields are required.' };
     }
     if (password.length < 6) {
       return { success: false, error: 'Password must be at least 6 characters.' };
     }
-    const existing = users.find(u => u.email.toLowerCase() === email.toLowerCase());
-    if (existing) {
-      return { success: false, error: 'An account with this email already exists.' };
-    }
+
+    const ownerEmail = email.toLowerCase();
+
     const newUser = {
       id: `u_${Date.now()}`,
       name,
       email,
-      password, // In a real app this would be hashed
+      password,
       role,
+      ownerEmail,
       createdAt: new Date().toISOString(),
       needsSiteSetup: true,
       sites: [],
     };
-    const updated = [...users, newUser];
-    setUsers(updated);
+
+    let updatedUsers = users.filter(u => u.email.toLowerCase() !== email.toLowerCase());
+    updatedUsers.push(newUser);
+
+    // If signing up as System Admin, create/update configured sub-roles (PM, SE, EM)
+    if (role === 'admin' && subRoles) {
+      if (subRoles.pm) {
+        updatedUsers = updatedUsers.filter(u => !(u.role === 'pm' && u.ownerEmail === ownerEmail));
+        updatedUsers.push({
+          id: `u_pm_${Date.now()}`,
+          name: `${name} (Project Manager)`,
+          email: subRoles.pm.email,
+          password: subRoles.pm.password,
+          role: 'pm',
+          ownerEmail: ownerEmail,
+          createdAt: new Date().toISOString(),
+          needsSiteSetup: false,
+          sites: []
+        });
+      }
+      if (subRoles.site_eng) {
+        updatedUsers = updatedUsers.filter(u => !(u.role === 'site_eng' && u.ownerEmail === ownerEmail));
+        updatedUsers.push({
+          id: `u_se_${Date.now()}`,
+          name: `${name} (Site Engineer)`,
+          email: subRoles.site_eng.email,
+          password: subRoles.site_eng.password,
+          role: 'site_eng',
+          ownerEmail: ownerEmail,
+          createdAt: new Date().toISOString(),
+          needsSiteSetup: false,
+          sites: []
+        });
+      }
+      if (subRoles.management) {
+        updatedUsers = updatedUsers.filter(u => !(u.role === 'management' && u.ownerEmail === ownerEmail));
+        updatedUsers.push({
+          id: `u_em_${Date.now()}`,
+          name: `${name} (Executive Leadership)`,
+          email: subRoles.management.email,
+          password: subRoles.management.password,
+          role: 'management',
+          ownerEmail: ownerEmail,
+          createdAt: new Date().toISOString(),
+          needsSiteSetup: false,
+          sites: []
+        });
+      }
+    }
+
+    setUsers(updatedUsers);
     setCurrentUser(newUser);
     setAuthScreen('add-site');
     return { success: true };
@@ -151,6 +255,21 @@ export function AuthProvider({ children }) {
   };
 
   /**
+   * System Admin function: configure email (ID) & password for specific role accounts.
+   */
+  const updateUserCredentials = ({ role, name, email, password }) => {
+    setUsers(prev => {
+      const exists = prev.some(u => u.role === role);
+      if (exists) {
+        return prev.map(u => u.role === role ? { ...u, name: name || u.name, email, password } : u);
+      } else {
+        return [...prev, { id: `u_${Date.now()}`, name: name || role, email, password, role, needsSiteSetup: false, sites: [] }];
+      }
+    });
+    return { success: true };
+  };
+
+  /**
    * Log out the current session.
    */
   const logout = () => {
@@ -168,6 +287,7 @@ export function AuthProvider({ children }) {
       login,
       logout,
       completeSiteSetup,
+      updateUserCredentials,
       ROLES,
     }}>
       {children}
