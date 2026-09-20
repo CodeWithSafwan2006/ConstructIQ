@@ -98,7 +98,7 @@ function Textarea({ ...props }) {
 }
 
 export default function AddSiteView() {
-  const { currentUser, completeSiteSetup } = useAuth();
+  const { currentUser, completeSiteSetup, logout } = useAuth();
   const { addProject, addTask, showToast } = useApp();
 
   const [step, setStep] = useState(1);
@@ -218,15 +218,25 @@ export default function AddSiteView() {
 
   return (
     <div className="min-h-screen bg-[#F7F5F0] flex flex-col items-center justify-start px-4 py-10">
-      {/* Brand */}
-      <div className="flex items-center gap-3 mb-8">
-        <div className="w-10 h-10 bg-[#275232] rounded-xl flex items-center justify-center">
-          <Building2 className="w-5 h-5 text-white" />
+      {/* Brand & Return Header */}
+      <div className="w-full max-w-2xl flex items-center justify-between mb-8">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-[#275232] rounded-xl flex items-center justify-center">
+            <Building2 className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <span className="text-xl font-black text-[#1E231F]">Construct<span className="text-[#275232]">IQ</span></span>
+            <p className="text-[10px] text-[#6E726E] font-semibold">New Site Setup</p>
+          </div>
         </div>
-        <div>
-          <span className="text-xl font-black text-[#1E231F]">Construct<span className="text-[#275232]">IQ</span></span>
-          <p className="text-[10px] text-[#6E726E] font-semibold">New Site Setup</p>
-        </div>
+
+        <button
+          type="button"
+          onClick={logout}
+          className="flex items-center gap-1.5 text-xs font-bold text-[#6E726E] hover:text-[#275232] px-3.5 py-2 rounded-xl border border-[#E5E2DA] bg-white hover:bg-[#F7F5F0] transition-colors shadow-xs"
+        >
+          <span>← Back to Login</span>
+        </button>
       </div>
 
       {/* Progress bar */}
@@ -557,12 +567,17 @@ export default function AddSiteView() {
         <div className="px-8 pb-7 flex items-center justify-between">
           <button
             type="button"
-            onClick={() => setStep(s => Math.max(1, s - 1))}
-            disabled={step === 1}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-[#E5E2DA] bg-[#F7F5F0] text-xs font-bold text-[#6E726E] hover:text-[#1E231F] hover:bg-[#E5E2DA] disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+            onClick={() => {
+              if (step === 1) {
+                logout();
+              } else {
+                setStep(s => Math.max(1, s - 1));
+              }
+            }}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-[#E5E2DA] bg-[#F7F5F0] text-xs font-bold text-[#6E726E] hover:text-[#1E231F] hover:bg-[#E5E2DA] transition-all"
           >
             <ChevronLeft className="w-4 h-4" />
-            Back
+            {step === 1 ? 'Back to Login' : 'Back'}
           </button>
 
           {step < STEPS.length && (
