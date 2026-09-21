@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <title>ConstructIQ — Hackathon Judge Presentation & Pitch Guide (PDF)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #F7F5F0;
+      --card-bg: #FFFFFF;
+      --border: #E5E2DA;
+      --text: #1E231F;
+      --muted: #6E726E;
+      --green: #275232;
+      --green-light: #E8F0E6;
+      --green-border: #C6DCBF;
+      --red: #991B1B;
+      --red-bg: #FEE2E2;
+      --amber: #92400E;
+      --amber-bg: #FEF3C7;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: 'Manrope', -apple-system, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 40px 20px;
+      margin: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+      max-width: 850px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+    }
+
+    .header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-b: 2px solid var(--border);
+      padding-bottom: 20px;
+      margin-bottom: 30px;
+    }
+
+    .brand {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .brand span { color: var(--green); }
+
+    .badge {
+      background: var(--green-light);
+      color: var(--green);
+      border: 1px solid var(--green-border);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .print-btn {
+      background: var(--green);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .print-btn:hover { background: #1E3F27; }
+
+    h1 { font-size: 26px; font-weight: 800; margin-top: 0; }
+    h2 { font-size: 20px; font-weight: 800; color: var(--green); margin-top: 30px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+    h3 { font-size: 16px; font-weight: 700; margin-top: 20px; }
+
+    .dialogue-box {
+      background: var(--bg);
+      border-left: 4px solid var(--green);
+      padding: 16px;
+      border-radius: 0 12px 12px 0;
+      font-size: 14px;
+      font-weight: 500;
+      margin: 15px 0;
+    }
+
+    .click-note {
+      background: var(--amber-bg);
+      border: 1px solid #FDE68A;
+      color: var(--amber);
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .qna-box {
+      background: #F7F5F0;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 15px;
+    }
+
+    .question { font-weight: 800; font-size: 14px; color: var(--red); margin-bottom: 6px; }
+    .answer { font-size: 13px; color: var(--text); font-weight: 500; }
+
+    footer {
+      margin-top: 40px;
+      padding-top: 20px;
+      border-t: 1px solid var(--border);
+      text-align: center;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    @media print {
+      body { background: white; padding: 0; }
+      .container { border: none; box-shadow: none; padding: 0; max-width: 100%; }
+      .print-btn { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="header-bar">
+      <div>
+        <div class="brand">Construct<span>IQ</span></div>
+        <div style="font-size: 12px; color: var(--muted); font-weight: 600;">LJ University B.Tech Hackathon 2026 — Task 07</div>
+      </div>
+      <div style="display: flex; gap: 10px; align-items: center;">
+        <span class="badge">100% Evaluation Ready</span>
+        <button class="print-btn" onclick="window.print()">🖨️ Save as PDF / Print</button>
+      </div>
+    </div>
+
+    <h1>🏆 Hackathon Judge Presentation & Pitch Script</h1>
+    <p style="font-size: 13px; color: var(--muted);">Follow this step-by-step presentation script during your live presentation to win Task 07.</p>
+
+    <h2>🎤 STEP 1: The Opening Hook (Pehle 15 Seconds)</h2>
+    <div class="dialogue-box">
+      "Respected Judges, jab 100 Crore ka real estate project delay hota hai, toh problem ye nahi hoti ki site manager ke paas data nahi tha. Problem ye hoti hai ki wo data 50 alag WhatsApp groups, kaghazi site logs, aur messy Excel files me bikhra pada hota hai.<br><br>
+      Swagat hai aapka <strong>ConstructIQ</strong> me — Task 07 ke liye hamara end-to-end Smart Construction Data Intelligence Platform jo bikhre hue site data ko <strong>Predictive Actions</strong> aur <strong>Instant Decisions</strong> me badalta hai!"
+    </div>
+
+    <h2>🚨 STEP 2: Problem Statement & Solution</h2>
+    <div class="dialogue-box">
+      "Task 07 ke mutabiq, construction sector me data ki <strong>accessibility, tracking, coordination, aur reporting</strong> sabse bada challenge hai.<br><br>
+      Aap screen par dekh rahe hain <strong>ConstructIQ Command Center</strong>. Humne ise traditional SaaS apps ki tarah complicated nahi banaya — humne ise <strong>Lovable-inspired Clean Warm Light Interface</strong> ke sath design kiya hai jo site managers aur non-tech contractors dono ke liye extremely user-friendly hai."
+    </div>
+
+    <h2>🖱️ STEP 3: Live Screen Demo Walkthrough (Click-by-Click Guide)</h2>
+
+    <h3>1️⃣ Screen 1: Command Center & Hero Project (/dashboard)</h3>
+    <div class="click-note">📌 Action: Click top Hero Card (Ahmedabad Smart Residency)</div>
+    <div class="dialogue-box">
+      "Ye hamara primary project hai — <strong>Ahmedabad Smart Residency</strong> (Budget: ₹10 Cr, Progress: 68%). Screen par sabse upar aapko ek <strong>Low Stock Material Alert</strong> dikh raha hai — Steel inventory 12 tons par drop ho chuki hai jo ki minimum 15 ton requirement se niche hai."
+    </div>
+
+    <h3>2️⃣ Screen 2: Transparent Smart Risk Engine (Score: 75/100)</h3>
+    <div class="click-note">📌 Action: Point to Explainable Risk Score Card (75/100)</div>
+    <div class="dialogue-box">
+      "Judges, humara sabse bada differentiator hai hamara <strong>Transparent Risk Engine</strong>. Hum koi fake ya black-box AI score nahi dikhate. Humara score 100% mathematical hai:<br>
+      • <strong>Progress Delay (2% lag):</strong> +30 Risk Points<br>
+      • <strong>Delayed Task (Electrical Installation overdue):</strong> +10 Risk Points<br>
+      • <strong>Material Shortage (Steel deficit):** +20 Risk Points<br>
+      • <strong>Cost Overrun Forecast (₹10.8 Cr predicted cost):</strong> +15 Risk Points<br>
+      <strong>Total Score = 75/100 HIGH RISK.</strong> Site manager ko exact pata hota hai ki kaha dhyan dena hai!"
+    </div>
+
+    <h3>3️⃣ Screen 3: Data Import Center (/import)</h3>
+    <div class="click-note">📌 Action: Click 'Import Data Center' in sidebar -> Click 'Load Sample Messy Spreadsheet'</div>
+    <div class="dialogue-box">
+      "Site se aane wali raw Excel sheets bohot gandi aur unstructured hoti hain. Hamara <strong>Data Import Center</strong> messy CSV file ko upload karte hi columns ko auto-map karta hai, duplicate entries remove karta hai, aur live database me sync kar deta hai."
+    </div>
+
+    <h3>4️⃣ Screen 4: ConstructIQ AI Assistant (/ai-assistant)</h3>
+    <div class="click-note">📌 Action: Click 'AI Assistant' in sidebar -> Click prompt chip 'Which material needs immediate procurement?'</div>
+    <div class="dialogue-box">
+      "Humara AI Assistant sirf normal chat engine nahi hai.<br>
+      1. Ye live site data ko analyze karta hai.<br>
+      2. Ye jawaab ke sath <strong>Source Citations</strong> deta hai (Sources: Materials Inventory, Procurement Engine).<br>
+      3. Aur sabse khaas baat — ye chat ke andar hi <strong>1-Click Action Buttons</strong> deta hai! Dekhiye, main yaha se direct <strong>Create Material Request (6 Tons Steel)</strong> par click karke order trigger kar sakta hu!"
+    </div>
+
+    <h3>5️⃣ Screen 5: Automated PDF Executive Report (/reports)</h3>
+    <div class="click-note">📌 Action: Click 'Weekly Report' in sidebar -> Click 'Print / Download PDF Report'</div>
+    <div class="dialogue-box">
+      "Management ko weekly audit bhejne ke liye 2 ghante Excel format karne ki zaroorat nahi hai. Single click se poora executive report print-ready PDF format me tayar ho jata hai."
+    </div>
+
+    <h2>❓ STEP 4: Top 5 Tough Judge Questions & Winning Answers</h2>
+
+    <div class="qna-box">
+      <div class="question">Q1: "Aapka Risk Score kaise calculate hota hai? Kya ye real hai ya hardcoded UI hai?"</div>
+      <div class="answer"><strong>Answer:</strong> "Sir, humara Risk Engine 100% rule-based mathematical model hai (src/utils/riskEngine.js). Hum 5 parameters check karte hain: Schedule Variance, Overdue Task Status, Inventory Threshold, Forecasted Budget Variance, aur Workforce Attendance. Site par naya data aate hi score real-time calculate hokar update hota hai!"</div>
+    </div>
+
+    <div class="qna-box">
+      <div class="question">Q2: "WhatsApp ya Excel spreadsheet se aane wale gande data ko system kaise samjhta hai?"</div>
+      <div class="answer"><strong>Answer:</strong> "Humare Data Import Center me schema auto-mapping logic hai jo raw column headers (Col_1, Vendor_Details, Status_Text) ko system parameters (Task, Material, AssignedTo, Status) ke sath fuzzy-match aur clean karke store karta hai."</div>
+    </div>
+
+    <div class="qna-box">
+      <div class="question">Q3: "Site par Internet / Network slow ho toh kya ye chalega?"</div>
+      <div class="answer"><strong>Answer:</strong> "Haan sir! Platform client-side local caching (localStorage state manager) par chalta hai. Internet slow hone par bhi saara offline data save rehta hai aur sync ho jata hai."</div>
+    </div>
+
+    <div class="qna-box">
+      <div class="question">Q4: "Market me existing construction software se ye alag kaise hai?"</div>
+      <div class="answer"><strong>Answer:</strong> "Procore aur Oracle Primavera bohot expensive aur complex hain. ConstructIQ 3 cheezein unique deta hai: (1) Zero-training light UI, (2) Explainable 0-100 Risk Score, (3) Conversational AI jo chat ke andar se hi direct Action Buttons execute karta hai."</div>
+    </div>
+
+    <div class="qna-box">
+      <div class="question">Q5: "Aapka business/monetization plan kya hoga?"</div>
+      <div class="answer"><strong>Answer:</strong> "Hum B2B SaaS Tiered Pricing model follow karenge: Starter Plan small builders ke liye ₹4,999/month aur Enterprise Plan large developers ke liye ₹24,999/month."</div>
+    </div>
+
+    <h2>🏁 STEP 5: Winning Closing Statement</h2>
+    <div class="dialogue-box" style="border-left-color: #92400E; background: #FEF3C7;">
+      "Judges, humne sirf ek hackathon demo nahi banaya, humne ek <strong>market-ready product</strong> banaya hai jo real construction problems ko solve karta hai.<br><br>
+      <strong>ConstructIQ: Turning Construction Data into Proactive Decisions.</strong><br>
+      Thank you so much! Ab hum aapke questions ke liye ready hain!"
+    </div>
+
+    <footer>
+      ConstructIQ — LJ University B.Tech Hackathon 2026 • Task 07 Official Presentation Guide
+    </footer>
+  </div>
+
+</body>
+</html>
